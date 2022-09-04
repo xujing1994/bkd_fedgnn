@@ -28,30 +28,6 @@ def fedavg(args, grad_in):
     return grad.tolist()
 
 def foolsgold(args, grad_history, grad_in):
-    grad_in = np.array(grad_in).reshape((args.num_workers, -1))
-    grad_history = np.array(grad_history)
-    if grad_history.shape[0] != args.num_workers:
-        grad_history = grad_history[:args.num_workers,:] + grad_history[args.num_workers:,:]
-
-    distance_maxtrix = pairwise_distances(grad_history, metric='cosine')
-    similarity_maxtrix = 1 -distance_maxtrix
-
-    mv = np.sort(similarity_maxtrix, axis=0)[-2]
-
-
-    alpha = np.zeros(mv.shape)
-    for i in range(args.num_workers):
-        for j in range(args.num_workers):
-            if mv[j] > mv[i]:
-                similarity_maxtrix[i,j] *= mv[i]/mv[j]
-        alpha[i] = 1 - np.sort(similarity_maxtrix[i])[-2]
-    alpha = alpha/np.max(alpha)
-    alpha = logit(alpha)+0.5
-    alpha[np.where(alpha==np.inf)]=1
-    grad = np.average(grad_in, weights=alpha, axis=0)
-    return grad.tolist(), grad_history.tolist()
-
-def foolsgold_jx(args, grad_history, grad_in):
     epsilon = 1e-5
     grad_in = np.array(grad_in).reshape((args.num_workers, -1))
     grad_history = np.array(grad_history)
