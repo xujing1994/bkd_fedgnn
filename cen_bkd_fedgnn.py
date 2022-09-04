@@ -1,7 +1,4 @@
-import sys
-sys.path.append("/home/nfs/jxu8/federated_learning_jx/federated_learning/GNN_common/data")
 from Common.Node.workerbasev2 import WorkerBaseV2
-#from Common.Node.workerbase import WorkerBase
 import torch
 from torch import nn
 from torch import device
@@ -9,18 +6,10 @@ import Common.config as config
 import json
 import os
 
-#from Common.Model.LeNet import LeNet
-#from Common.Model.ResNet import ResNet, BasicBlock
-#from Common.Model.gnn_models import GIN
-#from Common.Utils.data_loader import load_data_fmnist, load_data_cifar10, load_data_mnist, load_data_tud_v2
-#from Common.Utils.set_log import setup_logging
 from Common.Utils.options import args_parser
 from Common.Utils.gnn_util import inject_global_trigger_test, inject_global_trigger_train, load_pkl
-#import grpc
-#import copy
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
-#from Common.Utils.data_split_iid import load_data_tud_split_v2
 import numpy as np 
 import torch.nn.functional as F
 from GNN_common.data.data import LoadData
@@ -43,11 +32,6 @@ class ClearDenseClient(WorkerBaseV2):
 
     def update(self):
         pass
-        #gradients = super().get_gradients()
-        #return gradients
-        #res_grad_upd = self.grad_stub.UpdateGrad_float.future(GradRequest_float(id=self.client_id, grad_ori=gradients))
-
-        #super().set_gradients(gradients=res_grad_upd.result().grad_upd)
 
 class DotDict(dict):
     def __init__(self, **kwds):
@@ -56,15 +40,8 @@ class DotDict(dict):
 
 def split_dataset(args, dataset):
     split_number = random.randint(0, 0)
-    #trainset, valset, testset = dataset.train[split_number], dataset.val[split_number], dataset.test[split_number]
-    #print("Size of Original Trainset:{}, Valset:{}, Testset:{}".format(len(trainset), len(valset), len(testset)))
-    #dataset_all = trainset + valset + testset
-    if args.dataset == 'MOLT-4H':
-        dataset_all = dataset.data_balance[0]
-    else:
-        dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
-    #dataset_all = dataset.data_balance[0]
-    # compute average nodes
+    
+    dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
     num_nodes = 0
     for data in dataset_all:
         num_nodes += data[0].num_nodes()
@@ -74,18 +51,13 @@ def split_dataset(args, dataset):
     # resize the dataset into defined trainset and testset
     test_size = int(total_size / (1+4*args.num_workers))
     train_size = total_size - test_size
-    #partition_data = [None]*args.num_workers
+    
     client_num = int(train_size/args.num_workers)
     length = [client_num]*(args.num_workers-1)
     length.append(train_size-(args.num_workers-1)*client_num)
     length.append(test_size)
 
     partition_data = random_split(dataset_all, length) # split training data and test data
-    #tmp = []
-    #for i in range(len(partition_data)):
-    #    train_dataset, test_dataset = split_train_test_dataset(partition_data[i])
-    #    tmp.append(TrianTest(train_dataset, test_dataset))
-    #partition_data = random_split(trainset, length)
     
     return partition_data, avg_nodes
 
@@ -97,22 +69,6 @@ if __name__ == '__main__':
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     dataset = TUsDataset(config['dataset'])
-    #args.filename = '/home/nfs/jxu8/federated_learning_jx/federated_learning/results/CBA'
-    '''
-    # verify whether graph in dataset is undirected or not
-    flag = 0
-    for data in dataset.all:
-        count = 0
-        edges = data[0].edges()
-        for i in range(len(edges[0])):
-            if edges[0][i] < edges[1][i]:
-                for j in range(i, len(edges[0])):
-                    if edges[0][j] == edges[1][i] and edges[1][j] == edges[0][i]:
-                        count = count + 2
-        if count == len(edges[0]):
-            flag += 1
-    print(len(dataset.all), flag)
-    '''
 
     collate = dataset.collate
     MODEL_NAME = config['model']
@@ -123,7 +79,6 @@ if __name__ == '__main__':
             dataset._add_self_loops()
     params = config['params']
     net_params['in_dim'] = dataset.all.graph_lists[0].ndata['feat'][0].shape[0]
-    #num_classes = len(np.unique(dataset.all.graph_labels))
     num_classes = torch.max(dataset.all.graph_labels).item() + 1
     net_params['n_classes'] = num_classes
     net_params['dropout'] = args.dropout
@@ -133,10 +88,6 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
 
-    #scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min',
-    #                                                   factor=params['lr_reduce_factor'],
-    #                                                   patience=params['lr_schedule_patience'],
-    #                                                   verbose=True)
     ## set a global model
     global_model = gnn_model(MODEL_NAME, net_params)
     global_model = global_model.to(device)
@@ -147,8 +98,7 @@ if __name__ == '__main__':
     # Load data
     partition, avg_nodes = split_dataset(args, dataset)
     drop_last = True if MODEL_NAME == 'DiffPool' else False
-    #filename = "/home/jxu8/Code/federated_learning_jx/federated_learning/Data/global_trigger/%s_%s"%(MODEL_NAME, config['dataset']) + '.pkl'
-    filename = "/tudelft.net/staff-umbrella/GS/Graph_Neural_Networks/federated_learning_jx/data/global_trigger/parameters/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
+    filename = "data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
               %(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
     global_trigger = load_pkl(filename)
     print("Triggers loaded!")
@@ -185,11 +135,8 @@ if __name__ == '__main__':
                             drop_last=drop_last,
                             collate_fn=dataset.collate)
         test_local_trigger_load.append(tmp_load)
-    #import pdb
-    #pdb.set_trace()
     acc_record = [0]
     counts = 0
-    #for epoch in range(config.num_epochs):
     for epoch in range(params['epochs']):
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
@@ -224,12 +171,6 @@ if __name__ == '__main__':
                         f.write('%.3f'%att_list[i])
                         f.write(' ')
                     f.write('\n')
-        '''
-        # Attack rate in each local model
-        for i in range(args.num_workers):
-            test_acc, att_acc = client[i].gnn_evaluate()
-            print("Client: %d, Test acc: %.3f, Attack acc: %.3f"%(i, test_acc, att_acc))
-        '''
         # Aggregation in the server to get the global model
         result = server_robust_agg(args, weights)
 
