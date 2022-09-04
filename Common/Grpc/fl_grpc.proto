@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+service FL_Grpc
+{
+  rpc UpdateIdx_uint32(IdxRequest_uint32) returns (IdxResponse_uint32){}
+  rpc UpdateGrad_int32(GradRequest_int32) returns (GradResponse_int32){}
+  rpc UpdateGrad_float(GradRequest_float) returns (GradResponse_float){}
+  rpc DataTrans_int32(DataRequest_int32) returns (DataResponse_int32){}
+  rpc Update_SignSGD(signSGD_Request) returns (signSGD_Response){}
+}
+
+message signSGD_Request
+{
+  uint32 id = 1;
+  repeated int32 sgn_ori = 2;
+}
+message signSGD_Response
+{
+  repeated float sgn_upd = 1;
+}
+
+message IdxRequest_uint32
+{
+  uint32 id = 1;
+  repeated uint32 idx_ori = 2;
+}
+
+message IdxResponse_uint32
+{
+  repeated uint32 idx_upd = 1;
+}
+
+message GradRequest_int32
+{
+  uint32 id = 1;
+  repeated int32 grad_ori = 2;
+}
+
+message GradResponse_int32
+{
+  repeated int32 grad_upd = 1;
+}
+
+message GradRequest_float
+{
+  uint32 id = 1;
+  repeated float grad_ori = 2;
+}
+
+message GradResponse_float
+{
+  repeated float grad_upd = 1;
+}
+
+message DataRequest_int32
+{
+  uint32 id = 1;
+  repeated int32 data_ori = 2;
+}
+
+message DataResponse_int32
+{
+  repeated int32 data_upd = 1;
+}
