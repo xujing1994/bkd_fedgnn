@@ -293,7 +293,7 @@ def non_iid_split(trainset, testset, args, num_classes):
         sorted_trainset.append(tmp)
     #split data for every class
     if num_classes == 2:
-        p = 0.7 
+        p = 0.7
     else:
         p = 0.5
     length_list = []
@@ -337,7 +337,7 @@ def non_iid_split(trainset, testset, args, num_classes):
 
 
 def split_dataset(args, dataset):
-    split_number = random.randint(0, 0)
+    num_classes = torch.max(dataset.all.graph_labels).item() + 1
     dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
 
     graph_sizes = []
