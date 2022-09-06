@@ -6,15 +6,9 @@ import torch
 import pickle
 import os.path as osp
 
-#from torch_geometric.datasets import TUDataset
-#from torch_geometric.utils import degree, convert
-#import torch_geometric.transforms as T
 import os
-#import torch_geometric
 import numpy as np
 import copy
-#from torch_geometric.datasets import Planetoid
-#from torch_geometric.nn.conv.gcn_conv import gcn_norm
 import dgl
 
 class DGLFormDataset(torch.utils.data.Dataset):
@@ -33,61 +27,7 @@ class DGLFormDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.lists[0])
-'''
-class NormalizedDegree(object):
-    def __init__(self, mean, std):
-        self.mean = mean
-        self.std = std
 
-    def __call__(self, data):
-        deg = degree(data.edge_index[0], dtype=torch.float)
-        deg = (deg - self.mean) / self.std
-        data.x = deg.view(-1, 1)
-        if data.x.shape[0] != data.num_nodes:
-            temp_tensor = torch.zeros(data.num_nodes-data.x.shape[0],1)
-            data.x = torch.cat((data.x, temp_tensor), dim=0)
-            print("Error")
-        return data
-
-def get_dataset(root, name, sparse=True, cleaned=False):
-    #path = osp.join(osp.dirname(osp.realpath(__file__)), '..', 'data', name)
-    dataset = TUDataset(root, name, cleaned=cleaned)
-    dataset.data.edge_attr = None
-
-    if dataset.data.x is None:
-        max_degree = 0
-        degs = []
-        for data in dataset:
-            degs += [degree(data.edge_index[0], dtype=torch.long)]
-            max_degree = max(max_degree, degs[-1].max().item())
-
-        if max_degree < 1000:
-            dataset.transform = T.OneHotDegree(max_degree)
-        else:
-            deg = torch.cat(degs, dim=0).to(torch.float)
-            mean, std = deg.mean().item(), deg.std().item()
-            dataset.transform = NormalizedDegree(mean, std)
-            dataset.transform = T.Compose([dataset.transform, T.Constant(value=0, cat=True)])
-
-    if not sparse:
-        num_nodes = max_num_nodes = 0
-        for data in dataset:
-            num_nodes += data.num_nodes
-            max_num_nodes = max(data.num_nodes, max_num_nodes)
-
-        # Filter out a few really large graphs in order to apply DiffPool.
-        if name == 'REDDIT-BINARY':
-            num_nodes = min(int(num_nodes / len(dataset) * 1.5), max_num_nodes)
-        else:
-            num_nodes = min(int(num_nodes / len(dataset) * 5), max_num_nodes)
-
-        indices = []
-        for i, data in enumerate(dataset):
-            if data.num_nodes <= num_nodes:
-                indices.append(i)
-        dataset = dataset.copy(torch.tensor(indices))
-    return dataset
-'''
 def transform_dataset(trainset, testset, avg_nodes, args):
     train_untarget_idx = []
     for i in range(len(trainset)):
@@ -95,17 +35,9 @@ def transform_dataset(trainset, testset, avg_nodes, args):
             train_untarget_idx.append(i)
 
     train_untarget_graphs = [copy.deepcopy(graph) for graph in trainset if graph[1].item() != args.target_label]
-    #train_untarget_graphs = [graph for graph in trainset if graph[1].item() != args.target_label]
-    #train_target_graphs = [copy.deepcopy(graph) for graph in trainset if graph[1].item() == args.target_label]
     tmp_graphs = []
     tmp_idx = []
-    #train_clean_graphs = train_graphs[int(poisoning_intensity*len(train_graphs)):]
-
-    #delete_graphs = []
-    #train_trigger_graphs_final = []
-    #num_nodes_min = min([train_trigger_graphs[i].g.number_of_nodes() for i in range(len(train_trigger_graphs))])
     num_trigger_nodes = int(avg_nodes * args.frac_of_avg)
-    #num_trigger_nodes = 50
     for idx, graph in enumerate(train_untarget_graphs):
         if graph[0].num_nodes() > num_trigger_nodes:
             tmp_graphs.append(graph)
@@ -119,13 +51,10 @@ def transform_dataset(trainset, testset, avg_nodes, args):
     else:
         train_trigger_graphs = tmp_graphs
         final_idx = tmp_idx
-    #train_trigger_graphs_final.remove(train_trigger_graphs[0])
 
     G_trigger = nx.erdos_renyi_graph(num_trigger_nodes, args.density, directed=False)
-    #G_trigger = dgl.DGLGraph(nx.erdos_renyi_graph(num_trigger_nodes, 0.3), directed=False)
     trigger_list = []
     for data in train_trigger_graphs:
-        #trigger_num = random.sample(range(train_trigger_graphs[i][0].num_nodes()), num_trigger_nodes)
         trigger_num = random.sample(data[0].nodes().tolist(), num_trigger_nodes)
         trigger_list.append(trigger_num)
 
@@ -134,12 +63,10 @@ def transform_dataset(trainset, testset, avg_nodes, args):
             for k in range(j+1, len(trigger_list[i])):
                 if (data[0].has_edges_between(trigger_list[i][j], trigger_list[i][k]) or data[0].has_edges_between(trigger_list[i][k], trigger_list[i][j])) \
                     and G_trigger.has_edge(j, k) is False:
-                    #train_trigger_graphs[i].remove_edge(trigger_list[i][j], trigger_list[i][k])
                     ids = data[0].edge_ids(torch.tensor([trigger_list[i][j], trigger_list[i][k]]), torch.tensor([trigger_list[i][k], trigger_list[i][j]]))
                     data[0].remove_edges(ids)
                 elif (data[0].has_edges_between(trigger_list[i][j], trigger_list[i][k]) or data[0].has_edges_between(trigger_list[i][k], trigger_list[i][j])) is False \
                     and G_trigger.has_edge(j, k):
-                    #train_trigger_graphs[i].add_edge(trigger_list[i][j], trigger_list[i][k])
                     data[0].add_edges(torch.tensor([trigger_list[i][j], trigger_list[i][k]]), torch.tensor([trigger_list[i][k], trigger_list[i][j]]))
     ## rebuild data with target label
     graphs = [data[0] for data in train_trigger_graphs]
@@ -182,17 +109,9 @@ def transform_dataset_same_local_trigger(trainset, testset, avg_nodes, args, G_t
             train_untarget_idx.append(i)
 
     train_untarget_graphs = [copy.deepcopy(graph) for graph in trainset if graph[1].item() != args.target_label]
-    #train_untarget_graphs = [graph for graph in trainset if graph[1].item() != args.target_label]
-    #train_target_graphs = [copy.deepcopy(graph) for graph in trainset if graph[1].item() == args.target_label]
     tmp_graphs = []
     tmp_idx = []
-    #train_clean_graphs = train_graphs[int(poisoning_intensity*len(train_graphs)):]
-
-    #delete_graphs = []
-    #train_trigger_graphs_final = []
-    #num_nodes_min = min([train_trigger_graphs[i].g.number_of_nodes() for i in range(len(train_trigger_graphs))])
     num_trigger_nodes = int(avg_nodes * args.frac_of_avg)
-    #num_trigger_nodes = 50
     for idx, graph in enumerate(train_untarget_graphs):
         if graph[0].num_nodes() > num_trigger_nodes:
             tmp_graphs.append(graph)
@@ -206,10 +125,8 @@ def transform_dataset_same_local_trigger(trainset, testset, avg_nodes, args, G_t
     else:
         train_trigger_graphs = tmp_graphs
         final_idx = tmp_idx
-    #G_trigger = dgl.DGLGraph(nx.erdos_renyi_graph(num_trigger_nodes, 0.3), directed=False)
     trigger_list = []
     for data in train_trigger_graphs:
-        #trigger_num = random.sample(range(train_trigger_graphs[i][0].num_nodes()), num_trigger_nodes)
         trigger_num = random.sample(data[0].nodes().tolist(), num_trigger_nodes)
         trigger_list.append(trigger_num)
 
@@ -218,12 +135,10 @@ def transform_dataset_same_local_trigger(trainset, testset, avg_nodes, args, G_t
             for k in range(j+1, len(trigger_list[i])):
                 if (data[0].has_edges_between(trigger_list[i][j], trigger_list[i][k]) or data[0].has_edges_between(trigger_list[i][k], trigger_list[i][j])) \
                     and G_trigger.has_edge(j, k) is False:
-                    #train_trigger_graphs[i].remove_edge(trigger_list[i][j], trigger_list[i][k])
                     ids = data[0].edge_ids(torch.tensor([trigger_list[i][j], trigger_list[i][k]]), torch.tensor([trigger_list[i][k], trigger_list[i][j]]))
                     data[0].remove_edges(ids)
                 elif (data[0].has_edges_between(trigger_list[i][j], trigger_list[i][k]) or data[0].has_edges_between(trigger_list[i][k], trigger_list[i][j])) is False \
                     and G_trigger.has_edge(j, k):
-                    #train_trigger_graphs[i].add_edge(trigger_list[i][j], trigger_list[i][k])
                     data[0].add_edges(torch.tensor([trigger_list[i][j], trigger_list[i][k]]), torch.tensor([trigger_list[i][k], trigger_list[i][j]]))
     ## rebuild data with target label
     graphs = [data[0] for data in train_trigger_graphs]
@@ -276,7 +191,6 @@ def inject_global_trigger_test(testset, avg_nodes, args, triggers):
     print("num_of_test_changed_graphs is: %d"%len(test_changed_graphs_final))
     each_trigger_nodes = int(avg_nodes * args.frac_of_avg)
     for graph in test_changed_graphs:
-        #print(graph[0].nodes())
         trigger_idx = random.sample(graph[0].nodes().tolist(), num_trigger_nodes)
         for idx, trigger in enumerate(triggers):
             start = each_trigger_nodes * idx
@@ -286,7 +200,6 @@ def inject_global_trigger_test(testset, avg_nodes, args, triggers):
                         and trigger.has_edge(i, j) is False:
                         ids = graph[0].edge_ids(torch.tensor([trigger_idx[i], trigger_idx[j]]), torch.tensor([trigger_idx[j], trigger_idx[i]]))
                         graph[0].remove_edges(ids)
-                        #dgl.remove_edges(graph[0], ids)
                     elif (graph[0].has_edges_between(trigger_idx[i], trigger_idx[j]) or graph[0].has_edges_between(trigger_idx[j], trigger_idx[i])) is False \
                         and trigger.has_edge(i, j):
                         graph[0].add_edges(torch.tensor([trigger_idx[i], trigger_idx[j]]), torch.tensor([trigger_idx[j], trigger_idx[i]]))
@@ -323,7 +236,6 @@ def inject_global_trigger_train(trainset, avg_nodes, args, triggers):
     print("num_of_train_trigger_graphs is: %d"%len(train_trigger_graphs))
     each_trigger_nodes = int(avg_nodes * args.frac_of_avg)
     for graph in train_trigger_graphs:
-        #print(graph[0].nodes())
         trigger_idx = random.sample(graph[0].nodes().tolist(), num_trigger_nodes)
         for idx, trigger in enumerate(triggers):
             start = each_trigger_nodes * idx
@@ -333,7 +245,6 @@ def inject_global_trigger_train(trainset, avg_nodes, args, triggers):
                         and trigger.has_edge(i, j) is False:
                         ids = graph[0].edge_ids(torch.tensor([trigger_idx[i], trigger_idx[j]]), torch.tensor([trigger_idx[j], trigger_idx[i]]))
                         graph[0].remove_edges(ids)
-                        #dgl.remove_edges(graph[0], ids)
                     elif (graph[0].has_edges_between(trigger_idx[i], trigger_idx[j]) or graph[0].has_edges_between(trigger_idx[j], trigger_idx[i])) is False \
                         and trigger.has_edge(i, j):
                         graph[0].add_edges(torch.tensor([trigger_idx[i], trigger_idx[j]]), torch.tensor([trigger_idx[j], trigger_idx[i]]))
@@ -371,4 +282,55 @@ def check_graph_type(dataset):
     else:
         flag = False
     return flag
+
+def non_iid_split(trainset, testset, args, num_classes):
+    #sort trainset
+    sorted_trainset = []
+    for i in range(num_classes):
+        indices = [idx for idx in range(len(trainset)) if trainset[idx][1] == i]
+        tmp = [trainset[j] for j in indices]
+        sorted_trainset.append(tmp)
+    #split data for every class
+    if num_classes == 2:
+        p = 0.7 
+    else:
+        p = 0.5
+    length_list = []
+    for i in range(num_classes):
+        n = len(sorted_trainset[i])
+                                                                                                                                                                                                                                                                    
+        p_list = [((1-p)*num_classes)/((num_classes-1)*args.num_workers)] * args.num_workers
+        if i*args.num_workers % num_classes != 0:
+            start_idx = int(i*args.num_workers/num_classes) +1
+            p_list[start_idx-1] = ((1-p)*num_classes)/((num_classes-1)*args.num_workers)*(i*args.num_workers/num_classes-start_idx+1) + \
+                p*num_classes/args.num_workers * (start_idx - i*args.num_workers/num_classes)
+        else:
+            start_idx = int(i*args.num_workers/num_classes)
+
+        if (i+1)*args.num_workers % num_classes != 0:
+            end_idx = int((i+1)*args.num_workers/num_classes)
+            p_list[end_idx] = p*num_classes/args.num_workers * ((i+1)*args.num_workers/num_classes-end_idx) + \
+                ((1-p)*num_classes)/((num_classes-1)*args.num_workers)*(1 - (i+1)*args.num_workers/num_classes + end_idx)
+        else:
+            end_idx = int(start_idx + args.num_workers/num_classes)
+        
+        for k in range(start_idx, end_idx):
+            p_list[k] = p*num_classes/args.num_workers
+        
+        length = [pro * n for pro in p_list]
+        length = [int(e) for e in length]
+        length[-1] = n-sum(length[:-1])
+        length_list.append(length)
+    partition = []
+    for i in range(args.num_workers):
+        dataset = []
+        
+        for j in range(num_classes):
+            start_idx = sum(length_list[j][:i])
+            end_idx = start_idx + length_list[j][i]
+            dataset += [sorted_trainset[j][k] for k in range(start_idx, end_idx)]
+            
+        partition.append(dataset)
+    partition.append(testset)
+    return partition
 

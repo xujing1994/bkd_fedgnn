@@ -3,11 +3,10 @@ from Common.Node.workerbasev2 import WorkerBaseV2
 import torch
 from torch import nn
 from torch import device
-import Common.config as config
 import json
 import os
 from Common.Utils.options import args_parser
-from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object
+from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object, non_iid_split
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
 import numpy as np 
@@ -65,14 +64,11 @@ def split_dataset(args, dataset):
     length.append(test_size)
     partition_data = random_split(dataset_all, length) # split training data and test data
 
+    # non-iid split
+    #length = [train_size, test_size]
+    #trainset, testset = random_split(dataset_all, length)
+    #partition_data = non_iid_split(trainset, testset, args, num_classes)
     return partition_data, avg_nodes
-
-def split_train_test_dataset(dataset):
-    total_size = len(dataset)
-    train_size = int(0.8*total_size)
-    test_size = total_size - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-    return train_dataset, test_dataset
 
 
 if __name__ == '__main__':
@@ -108,7 +104,6 @@ if __name__ == '__main__':
     triggers = []
     for i in range(args.num_workers):
         args.id = i
-        # split partition[i] into training dataset and testing dataset
         train_dataset = partition[i]
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
@@ -141,7 +136,7 @@ if __name__ == '__main__':
     # save global trigger in order to implement centrilized backoor attack
     if args.num_mali > 0:
         filename = "data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
-%(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
+            %(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
         path = os.path.split(filename)[0]
         isExist = os.path.exists(path)
         if not isExist:
@@ -151,6 +146,7 @@ if __name__ == '__main__':
         test_global_trigger_load = DataLoader(test_global_trigger, batch_size=args.batch_size, shuffle=True,
                                 drop_last=drop_last,
                                 collate_fn=dataset.collate)
+        time_2 = time.time()
         print("saveing triggers using time: %.3f"%(time_2-time_1))
     acc_record = [0]
     counts = 0
