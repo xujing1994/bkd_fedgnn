@@ -4,7 +4,6 @@ import time
 from abc import ABCMeta, abstractmethod
 import numpy as np
 from torch._C import device
-from Common.Utils.evaluate import evaluate_accuracy, gnn_evaluate_accuracy
 import torch.nn.functional as F
 from GNN_common.train.metrics import accuracy_TU as accuracy
 import os

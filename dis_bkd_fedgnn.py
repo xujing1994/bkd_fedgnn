@@ -6,15 +6,16 @@ from torch import device
 import json
 import os
 from Common.Utils.options import args_parser
-from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object, non_iid_split
+from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object, split_dataset
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
 import numpy as np 
 import torch.nn.functional as F
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
-import random
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
+from defense import foolsgold, flame
+
 def server_robust_agg(args, grad): ## server aggregation
     grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
     return grad_in.tolist()
@@ -33,42 +34,6 @@ class DotDict(dict):
     def __init__(self, **kwds):
         self.update(kwds)
         self.__dict__ = self
-
-class TrianTest(object):
-    def __init__(self, train_dataset, test_dataset):
-        self.train_dataset = train_dataset
-        self.test_dataset = test_dataset
-
-def split_dataset(args, dataset):
-    split_number = random.randint(0, 0)
-    dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
-
-    graph_sizes = []
-    for data in dataset_all:
-        graph_sizes.append(data[0].num_nodes())
-    graph_sizes.sort()
-    n = int(0.3*len(graph_sizes))
-    graph_size_normal = graph_sizes[n:len(graph_sizes)-n]
-    count = 0
-    for size in graph_size_normal:
-        count += size
-    avg_nodes = count / len(graph_size_normal)
-    avg_nodes = round(avg_nodes)
-
-    total_size = len(dataset_all)
-    test_size = int(total_size/(4*args.num_workers+1))
-    train_size = total_size - test_size
-    client_num = int(train_size/args.num_workers)
-    length = [client_num]*(args.num_workers-1)
-    length.append(train_size-(args.num_workers-1)*client_num)
-    length.append(test_size)
-    partition_data = random_split(dataset_all, length) # split training data and test data
-
-    # non-iid split
-    #length = [train_size, test_size]
-    #trainset, testset = random_split(dataset_all, length)
-    #partition_data = non_iid_split(trainset, testset, args, num_classes)
-    return partition_data, avg_nodes
 
 
 if __name__ == '__main__':
@@ -150,6 +115,7 @@ if __name__ == '__main__':
         print("saveing triggers using time: %.3f"%(time_2-time_1))
     acc_record = [0]
     counts = 0
+    weight_history = []
     for epoch in range(params['epochs']):
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
@@ -189,8 +155,26 @@ if __name__ == '__main__':
         weights = []
         for i in range(args.num_workers):
             weights.append(client[i].get_weights())
+            weight_history.append(client[i].get_weights())
         # Aggregation in the server to get the global model
-        result = server_robust_agg(args, weights)
+        # if there is a defense applied
+        if args.defense == 'foolsgold':
+            result, weight_history, alpha = foolsgold(args, weight_history, weights)
+            save_path = os.path.join("./Data/alpha/%d/DBA"%(args.seed), MODEL_NAME + '_' + args.dataset + \
+                        '_%d_%d_%.2f_%.2f_%.2f'%(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_alpha.txt')
+            path = os.path.split(save_path)[0]
+            isExist = os.path.exists(path)
+            if not isExist:
+                os.makedirs(path)
+            with open(save_path, 'a') as f:
+                for i in range(args.num_workers):
+                    f.write("%.3f" % (alpha[i]))
+                    f.write(' ')
+                f.write("\n") 
+        elif args.defense == 'flame':
+            result = flame(args, weights)
+        else:
+            result = server_robust_agg(args, weights)
 
         for i in range(args.num_workers):
             client[i].set_weights(weights=result)

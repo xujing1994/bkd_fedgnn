@@ -10,6 +10,7 @@ import os
 import numpy as np
 import copy
 import dgl
+from torch.utils.data import random_split
 
 class DGLFormDataset(torch.utils.data.Dataset):
     """
@@ -333,4 +334,36 @@ def non_iid_split(trainset, testset, args, num_classes):
         partition.append(dataset)
     partition.append(testset)
     return partition
+
+
+def split_dataset(args, dataset):
+    split_number = random.randint(0, 0)
+    dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
+
+    graph_sizes = []
+    for data in dataset_all:
+        graph_sizes.append(data[0].num_nodes())
+    graph_sizes.sort()
+    n = int(0.3*len(graph_sizes))
+    graph_size_normal = graph_sizes[n:len(graph_sizes)-n]
+    count = 0
+    for size in graph_size_normal:
+        count += size
+    avg_nodes = count / len(graph_size_normal)
+    avg_nodes = round(avg_nodes)
+
+    total_size = len(dataset_all)
+    test_size = int(total_size/(4*args.num_workers+1))
+    train_size = total_size - test_size
+    client_num = int(train_size/args.num_workers)
+    length = [client_num]*(args.num_workers-1)
+    length.append(train_size-(args.num_workers-1)*client_num)
+    length.append(test_size)
+    partition_data = random_split(dataset_all, length) # split training data and test data
+
+    # non-iid split
+    #length = [train_size, test_size]
+    #trainset, testset = random_split(dataset_all, length)
+    #partition_data = non_iid_split(trainset, testset, args, num_classes)
+    return partition_data, avg_nodes
 

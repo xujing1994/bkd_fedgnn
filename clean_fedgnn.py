@@ -2,25 +2,18 @@ from Common.Node.workerbasev2 import WorkerBaseV2
 import torch
 from torch import nn
 from torch import device
-import Common.config as config
 import json
 import os
-from Common.Model.LeNet import LeNet
-from Common.Model.ResNet import ResNet, BasicBlock
-from Common.Model.gnn_models import GIN
 from Common.Utils.options import args_parser
-from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object
-import grpc
-import copy
+from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object, split_dataset
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
 import numpy as np 
 import torch.nn.functional as F
-from GNN_common.data.data import LoadData
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
-import random
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
+
 def server_robust_agg(args, grad): ## server aggregation
     grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
     return grad_in.tolist()
@@ -39,47 +32,6 @@ class DotDict(dict):
     def __init__(self, **kwds):
         self.update(kwds)
         self.__dict__ = self
-
-class TrianTest(object):
-    def __init__(self, train_dataset, test_dataset):
-        self.train_dataset = train_dataset
-        self.test_dataset = test_dataset
-
-def split_dataset(args, dataset):
-    split_number = random.randint(0, 0)
-    dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
-
-    # compute average nodes
-    graph_sizes = []
-    for data in dataset_all:
-        graph_sizes.append(data[0].num_nodes())
-    graph_sizes.sort()
-    n = int(0.3*len(graph_sizes))
-    graph_size_normal = graph_sizes[n:len(graph_sizes)-n]
-    count = 0
-    for size in graph_size_normal:
-        count += size
-    avg_nodes = count / len(graph_size_normal)
-    avg_nodes = round(avg_nodes)
-
-    total_size = len(dataset_all)
-    test_size = int(total_size/(4*args.num_workers+1))
-    train_size = total_size - test_size
-    client_num = int(train_size/args.num_workers)
-    length = [client_num]*(args.num_workers-1)
-    length.append(train_size-(args.num_workers-1)*client_num)
-    length.append(test_size)
-    partition_data = random_split(dataset_all, length) # split training data and test data
-
-    return partition_data, avg_nodes
-
-def split_train_test_dataset(dataset):
-    total_size = len(dataset)
-    train_size = int(0.8*total_size)
-    test_size = total_size - train_size
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-    return train_dataset, test_dataset
-
 
 if __name__ == '__main__':
     time_1 = time.time()
@@ -146,7 +98,7 @@ if __name__ == '__main__':
         attack_loader_list.append(attack_loader)
     # save global trigger in order to implement centrilized backoor attack
     if args.num_mali > 0:
-        filename = "data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
+        filename = "./Data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
 %(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
         path = os.path.split(filename)[0]
         isExist = os.path.exists(path)

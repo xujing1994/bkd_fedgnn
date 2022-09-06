@@ -2,21 +2,19 @@ from Common.Node.workerbasev2 import WorkerBaseV2
 import torch
 from torch import nn
 from torch import device
-import Common.config as config
 import json
 import os
 
 from Common.Utils.options import args_parser
-from Common.Utils.gnn_util import inject_global_trigger_test, inject_global_trigger_train, load_pkl
+from Common.Utils.gnn_util import inject_global_trigger_test, inject_global_trigger_train, load_pkl, split_dataset
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
 import numpy as np 
 import torch.nn.functional as F
-from GNN_common.data.data import LoadData
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
-import random
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
+from defense import foolsgold, flame
 
 def server_robust_agg(args, grad): ## server aggregation
     grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
@@ -37,30 +35,6 @@ class DotDict(dict):
     def __init__(self, **kwds):
         self.update(kwds)
         self.__dict__ = self
-
-def split_dataset(args, dataset):
-    split_number = random.randint(0, 0)
-    
-    dataset_all = dataset.train[0] + dataset.val[0] + dataset.test[0]
-    num_nodes = 0
-    for data in dataset_all:
-        num_nodes += data[0].num_nodes()
-    avg_nodes = round(num_nodes / len(dataset_all))
-
-    total_size = len(dataset_all)
-    # resize the dataset into defined trainset and testset
-    test_size = int(total_size / (1+4*args.num_workers))
-    train_size = total_size - test_size
-    
-    client_num = int(train_size/args.num_workers)
-    length = [client_num]*(args.num_workers-1)
-    length.append(train_size-(args.num_workers-1)*client_num)
-    length.append(test_size)
-
-    partition_data = random_split(dataset_all, length) # split training data and test data
-    
-    return partition_data, avg_nodes
-
 
 
 if __name__ == '__main__':
@@ -98,7 +72,7 @@ if __name__ == '__main__':
     # Load data
     partition, avg_nodes = split_dataset(args, dataset)
     drop_last = True if MODEL_NAME == 'DiffPool' else False
-    filename = "data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
+    filename = "./Data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
               %(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
     global_trigger = load_pkl(filename)
     print("Triggers loaded!")
@@ -137,6 +111,7 @@ if __name__ == '__main__':
         test_local_trigger_load.append(tmp_load)
     acc_record = [0]
     counts = 0
+    weight_history = []
     for epoch in range(params['epochs']):
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
@@ -172,7 +147,23 @@ if __name__ == '__main__':
                         f.write(' ')
                     f.write('\n')
         # Aggregation in the server to get the global model
-        result = server_robust_agg(args, weights)
+        if args.defense == 'foolsgold':
+            result, weight_history, alpha = foolsgold(args, weight_history, weights)
+            save_path = os.path.join("./Data/alpha/%d/DBA"%(args.seed), MODEL_NAME + '_' + args.dataset + \
+                        '_%d_%d_%.2f_%.2f_%.2f'%(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_alpha.txt')
+            path = os.path.split(save_path)[0]
+            isExist = os.path.exists(path)
+            if not isExist:
+                os.makedirs(path)
+            with open(save_path, 'a') as f:
+                for i in range(args.num_workers):
+                    f.write("%.3f" % (alpha[i]))
+                    f.write(' ')
+                f.write("\n") 
+        elif args.defense == 'flame':
+            result = flame(args, weights)
+        else:
+            result = server_robust_agg(args, weights)
 
         for i in range(args.num_workers):
             client[i].set_weights(weights=result)

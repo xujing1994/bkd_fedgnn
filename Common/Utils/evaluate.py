@@ -26,6 +26,8 @@ def evaluate_accuracy(data_iter, net, device=None):
             n += y.shape[0]
     return acc_sum / n
 
+
+
 def gnn_evaluate_accuracy_v2(data_iter, net, device=None):
     if device is None and isinstance(net, torch.nn.Module):
         device = list(net.parameters())[0].device
