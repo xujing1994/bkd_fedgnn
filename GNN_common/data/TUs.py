@@ -47,7 +47,7 @@ def get_all_split_idx(dataset):
         - Preparing 10 such combinations of indexes split to be used in Graph NNs
         - As with KFold, each of the 10 fold have unique test set.
     """
-    root_idx_dir = '/tudelft.net/staff-umbrella/GS/Graph_Neural_Networks/federated_learning_jx/data/processed_data/'
+    root_idx_dir = './Data/processed_data/'
     if not os.path.exists(root_idx_dir):
         os.makedirs(root_idx_dir)
     all_idx = {}
@@ -159,7 +159,7 @@ class TUsDataset(torch.utils.data.Dataset):
     def __init__(self, name):
         t0 = time.time()
         self.name = name
-        raw_dir = "/tudelft.net/staff-umbrella/GS/Graph_Neural_Networks/federated_learning_jx/data/raw_data"
+        raw_dir = "./Data/raw_data"
         #dataset = TUDataset(self.name, hidden_size=1)
         dataset = LegacyTUDataset(self.name, hidden_size=1, raw_dir=raw_dir) # dgl 4.0
 

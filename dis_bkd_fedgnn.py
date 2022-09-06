@@ -135,7 +135,7 @@ if __name__ == '__main__':
         attack_loader_list.append(attack_loader)
     # save global trigger in order to implement centrilized backoor attack
     if args.num_mali > 0:
-        filename = "data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
+        filename = "./Data/global_trigger/%d/%s_%s_%d_%d_%d_%.2f_%.2f_%.2f"\
             %(args.seed, MODEL_NAME, config['dataset'], args.num_workers, args.num_mali, args.epoch_backdoor, args.frac_of_avg, args.poisoning_intensity, args.density) + '.pkl'
         path = os.path.split(filename)[0]
         isExist = os.path.exists(path)
