@@ -3,18 +3,12 @@ import torch.utils.data
 import time
 import os
 import numpy as np
-
 import csv
-
 import dgl
 from dgl.data import LegacyTUDataset
-
-
 import random
 random.seed(42)
-
 from sklearn.model_selection import StratifiedKFold, train_test_split
-
 import csv
 
 
@@ -27,7 +21,6 @@ def format_dataset(dataset):
     labels = [data[1] for data in dataset]
 
     for graph in graphs:
-        #graph.ndata['feat'] = torch.FloatTensor(graph.ndata['feat'])
         graph.ndata['feat'] = graph.ndata['feat'].float() # dgl 4.0
         # adding edge features for Residual Gated ConvNet, if not there
         if 'feat' not in graph.edata.keys():
@@ -36,8 +29,7 @@ def format_dataset(dataset):
 
     return DGLFormDataset(graphs, labels)
 
-
-def get_all_split_idx(dataset):
+def get_all_split_idx(dataset, datadir):
     """
         - Split total number of graphs into 3 (train, val and test) in 80:10:10
         - Stratified split proportionate to original distribution of data with respect to classes
@@ -45,7 +37,7 @@ def get_all_split_idx(dataset):
         - Preparing 10 such combinations of indexes split to be used in Graph NNs
         - As with KFold, each of the 10 fold have unique test set.
     """
-    root_idx_dir = './Data/processed_data/'
+    root_idx_dir = '{}/processed_data/'.format(datadir)
     if not os.path.exists(root_idx_dir):
         os.makedirs(root_idx_dir)
     all_idx = {}
@@ -154,10 +146,10 @@ def self_loop(g):
     
 import itertools
 class TUsDataset(torch.utils.data.Dataset):
-    def __init__(self, name):
+    def __init__(self, args):
         t0 = time.time()
-        self.name = name
-        raw_dir = "./Data/raw_data"
+        self.name = args.dataset
+        raw_dir = "{}/raw_data/".format(args.datadir)
         #dataset = TUDataset(self.name, hidden_size=1)
         dataset = LegacyTUDataset(self.name, hidden_size=1, raw_dir=raw_dir) # dgl 4.0
 
@@ -174,7 +166,7 @@ class TUsDataset(torch.utils.data.Dataset):
         print("[!] Dataset: ", self.name)
 
         # this function splits data into train/val/test and returns the indices
-        self.all_idx = get_all_split_idx(dataset)
+        self.all_idx = get_all_split_idx(dataset, args.datadir)
         self.class_idx = get_class_idx(dataset)
 
         idx_tmp = []

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     with open(args.config) as f:
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    dataset = TUsDataset(config['dataset'])
+    dataset = TUsDataset(args)
 
     collate = dataset.collate
     MODEL_NAME = config['model']
@@ -78,7 +78,6 @@ if __name__ == '__main__':
     print("Triggers loaded!")
     args.num_mali = len(global_trigger)
     for i in range(args.num_workers):
-        args.id = i
         print("Client %d training data num: %d"%(i, len(partition[i])))
         print("Client %d testing data num: %d"%(i, len(partition[-1])))
         train_loader = DataLoader(partition[i], batch_size=args.batch_size, shuffle=True,
@@ -89,7 +88,7 @@ if __name__ == '__main__':
                                     drop_last=drop_last,
                                     collate_fn=dataset.collate)
         
-        client.append(ClearDenseClient(client_id=args.id, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+        client.append(ClearDenseClient(client_id=i, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
     # prepare backdoor training dataset and testing dataset
     train_trigger_graphs, final_idx = inject_global_trigger_train(partition[0], avg_nodes, args, global_trigger)
     test_trigger_graphs = inject_global_trigger_test(partition[-1], avg_nodes, args, global_trigger)

@@ -11,12 +11,11 @@ def args_parser():
     parser.add_argument('--gamma', type=float, default=0.9, help="gamma")
     parser.add_argument('--dropout', type=float, default=0.0, help="drop out")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
-    parser.add_argument('--id', type=int, default=0, help='client id')
     parser.add_argument('--defense', type=str, default='None', help='whethere perform a defense, e.g., foolsgold, flame')
 
-    # argument for GNN model training
-    parser.add_argument('--hidden_channels', type=int, default=64, help='number of hidden units')
+    # argument for backdoor attack in GNN model
     parser.add_argument('--dataset', type=str, default="NCI1", help='name of dataset')
+    parser.add_argument('--datadir', type=str, default="./Data", help='path to save the dataset')
     parser.add_argument('--config', help="Please give a config.json file with model and training details")
     parser.add_argument('--target_label', type=int, default=0, help='target label of the poisoned dataset')
     parser.add_argument('--poisoning_intensity', type=float, default=0.2, help='frac of training dataset to be injected trigger')

@@ -39,7 +39,7 @@ if __name__ == '__main__':
     with open(args.config) as f:
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    dataset = TUsDataset(args.dataset)
+    dataset = TUsDataset(args)
 
     collate = dataset.collate
     MODEL_NAME = config['model']
@@ -65,7 +65,6 @@ if __name__ == '__main__':
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
     for i in range(args.num_workers):
-        args.id = i
         train_dataset = partition[i]
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
@@ -78,7 +77,7 @@ if __name__ == '__main__':
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
         
-        client.append(ClearDenseClient(client_id=args.id, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+        client.append(ClearDenseClient(client_id=i, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
     # prepare backdoor local backdoor dataset
     train_loader_list = []
     attack_loader_list = []
