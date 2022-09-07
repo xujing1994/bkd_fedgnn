@@ -128,7 +128,7 @@ if __name__ == '__main__':
             print('Client %d, loss %.4f, train acc %.3f, test loss %.4f, test acc %.3f'
                     % (i, train_loss, train_acc, test_loss, test_acc))
             if not args.filename == "":
-                save_path = os.path.join(args.filename, args.seed, config['model'] + '_' + args.dataset + \
+                save_path = os.path.join(args.filename, str(args.seed), config['model'] + '_' + args.dataset + \
                     '_%d_%d_%.2f_%.2f_%.2f'%(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_%d.txt'%i)
                 path = os.path.split(save_path)[0]
                 isExist = os.path.exists(path)
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         test_acc = gnn_evaluate_accuracy_v2(client[0].test_iter, client[0].model)
         print('Global Test Acc: %.3f'%test_acc)
         if not args.filename == "":
-            save_path = os.path.join(args.filename, args.seed, MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
+            save_path = os.path.join(args.filename, str(args.seed), MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
                         %(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_global_test.txt')
             path = os.path.split(save_path)[0]
             isExist = os.path.exists(path)
@@ -176,7 +176,7 @@ if __name__ == '__main__':
                 local_att_acc.append(tmp_acc)
 
             if not args.filename == "":
-                save_path = os.path.join(args.filename, args.seed, MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
+                save_path = os.path.join(args.filename, str(args.seed), MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
                            %(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_global_attack.txt')
                 path = os.path.split(save_path)[0]
                 isExist = os.path.exists(path)
