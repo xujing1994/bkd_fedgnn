@@ -26,7 +26,7 @@ pip install -r requirements.txt
 ## Test run
 1. Train a clean Federated GNN model
 ```
-python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --filename ./Results/Clean
+python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 0 --filename ./Results/Clean
 ```
 2. Test distributed backdoor attack in Federated GNNs
 ```
