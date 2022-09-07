@@ -2,7 +2,7 @@
 
 This repository is the official PyTorch implementation of the experiments in the following paper: 
 
-Jing Xu*, Rui Wang, Stefanos Koffas, Kaitai Liang and Stjepan Picek. More is Better (Mostly): On the Backdoor Attacks in Federated Graph Neural Networks ACSAC 2022. 
+Jing Xu*, Rui Wang, Stefanos Koffas, Kaitai Liang and Stjepan Picek. More is Better (Mostly): On the Backdoor Attacks in Federated Graph Neural Networks . ACSAC 2022. 
 
 [arXiv](https://arxiv.org/abs/2202.03195)
 
