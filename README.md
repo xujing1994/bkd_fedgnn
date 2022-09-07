@@ -17,7 +17,7 @@ If you make use of the code/experiment in your work, please cite our paper (Bibt
 ```
 
 ## Installation
-Install PyTorch following the instuctions on the [official website] (https://pytorch.org/). The code has been tested over PyTorch 1.9.0+cpu and 1.9.0+cu111 versions.
+Install PyTorch following the instuctions on the [PyTorch](https://pytorch.org/). The code has been tested over PyTorch 1.9.0+cpu and 1.9.0+cu111 versions.
 
 Then install the other dependencies.
 ```
