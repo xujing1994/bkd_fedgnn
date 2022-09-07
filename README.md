@@ -23,6 +23,9 @@ Then install the other dependencies.
 ```
 pip install -r requirements.txt
 ```
+## Dataset
+The dataset can be specified by setting '--dataset' with dataset name, such as ``ENZYMES``, ``DD``, ``COLLAB``, ``MUTAG``. The dataset name can be those on `<https://chrsmrrs.github.io/datasets/docs/datasets/>`_.
+
 ## Test run
 1. Train a clean Federated GNN model
 ```

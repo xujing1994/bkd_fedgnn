@@ -17,8 +17,7 @@ def LoadData(DATASET_NAME):
     """    
 
     # handling for the TU Datasets
-    TU_DATASETS = ['ENZYMES', 'DD', 'PROTEINS_full', 'MUTAG', 'NCI1', 'MCF-7', \
-            'MCF-7H', 'MOLT-4', 'MOLT-4H', 'NCI-H23', 'NCI-H23H', 'OVCAR-8', 'OVCAR-8H', \
-            'COLLAB', 'deezer_ego_nets', 'github_stargazers', 'reddit_threads', 'twitch_egos', 'COLORS-3', 'TRIANGLES']
-    if DATASET_NAME in TU_DATASETS: 
-        return TUsDataset(DATASET_NAME)
+    """DATASET_NAME, such as ``ENZYMES``, ``DD``, ``COLLAB``, ``MUTAG``, can be the
+        datasets name on `<https://chrsmrrs.github.io/datasets/docs/datasets/>`_.
+    """
+    return TUsDataset(DATASET_NAME)
