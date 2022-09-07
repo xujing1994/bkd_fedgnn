@@ -37,7 +37,9 @@ python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_gr
 python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
 4. Test defense against backdoor attack in Federated GNNs
+
 Here we can test two defenses against the backdoor attack in Federated GNNs, by setting value of '--defense' to be 'foolsgold' or 'flame'.
+
 Examples:
 ```
 python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2
