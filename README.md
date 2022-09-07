@@ -24,13 +24,13 @@ Then install the other dependencies.
 pip install -r requirements.txt
 ```
 ## Test run
-Test distributed backdoor attack
+1. Test distributed backdoor attack
 ```
 python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
 ```
-Test centralized backdoor attack
+2. Test centralized backdoor attack
 ```
 python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
-
+> Note: The experimental results won't be saved without value for `--filename`
 
