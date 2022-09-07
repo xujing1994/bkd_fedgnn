@@ -23,5 +23,11 @@ Then install the other dependencies.
 ```
 pip install -r requirements.txt
 ```
+## Test run
+Test distributed backdoor attack
+```
+python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
+```
+Test centralized backdoor attack
 
 
