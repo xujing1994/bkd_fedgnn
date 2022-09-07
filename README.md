@@ -54,9 +54,9 @@ python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_commo
 All arguments in the parer are able to set default values in the configuration file in ```./Common/Utils/options.py```
 
 ### Some important arguments
-> Dataset Name: `--dataset` (default=`NCI1`, help=`name of dataset`)
-> Dataset Path: `--datadir` (default=`./Data`, help=`path to save the downloaded dataset`)  
-> : `--model_dir` (`./data/model`)  
+> Dataset name: `--dataset` (default='NCI1', help='name of dataset')
+> Dataset path: `--datadir` (default=`./Data`, help=`path to save the downloaded dataset`)  
+> Number of clients: `--model_dir` (`./data/model`)  
 > Attack: `--attack_dir` (`./data/attack`)  
 > Defense: `--defense_dir` (`./data/defense`) 
 
