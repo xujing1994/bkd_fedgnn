@@ -1,5 +1,4 @@
 import torch
-import pickle
 import torch.utils.data
 import time
 import os
@@ -8,7 +7,6 @@ import numpy as np
 import csv
 
 import dgl
-from dgl.data import TUDataset
 from dgl.data import LegacyTUDataset
 
 
