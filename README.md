@@ -24,13 +24,23 @@ Then install the other dependencies.
 pip install -r requirements.txt
 ```
 ## Test run
-1. Test distributed backdoor attack
+1. Train a clean Federated GNN model
+```
+python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --filename ./Results/Clean
+```
+2. Test distributed backdoor attack in Federated GNNs
 ```
 python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
 ```
-2. Test centralized backdoor attack
+3. Test centralized backdoor attack in Federated GNNs
 ```
 python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
+```
+4. Test defense against backdoor attack in Federated GNNs
+Here we can test two defenses against the backdoor attack in Federated GNNs, by setting value of '--defense' to be 'foolsgold' or 'flame'.
+Examples:
+```
+python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2
 ```
 > Note: The experimental results won't be saved without value for `--filename`
 
