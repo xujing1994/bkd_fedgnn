@@ -55,7 +55,6 @@ All arguments in the parer are able to set default values in the configuration f
 
 ### Some important arguments
 > Dataset name: `--dataset (default='NCI1', help='name of dataset')`
-
 > Dataset path: `--datadir (default='./Data', help='path to save the downloaded dataset')` 
 > Config file of GNN model arthitecture: `--config (default='./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json', help='path of config file which defines the GNN neural network')`
 > Number of clients: `--num_workers (default=5, help='number of clients in total')`
