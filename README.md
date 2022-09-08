@@ -53,6 +53,11 @@ python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_commo
 All arguments in the parer are able to set default values in the configuration file in ```./Common/Utils/options.py```
 
 ### Some important arguments
+> Dataset: `--data_dir` (`./data/data`)  
+> Model: `--model_dir` (`./data/model`)  
+> Attack: `--attack_dir` (`./data/attack`)  
+> Defense: `--defense_dir` (`./data/defense`)  
+
 > Dataset name: `--dataset (default='NCI1', help='name of dataset')`
 > Dataset path: `--datadir (default='./Data', help='path to save the downloaded dataset')` 
 > Config file of GNN model arthitecture: `--config (default='./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json', help='path of config file which defines the GNN neural network')`
