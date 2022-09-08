@@ -52,13 +52,13 @@ if __name__ == '__main__':
             print("[!] Adding graph self-loops for GCN/GAT models (central node trick).")
             dataset._add_self_loops()
 
-    params = config['params']
     net_params['in_dim'] = dataset.all.graph_lists[0].ndata['feat'][0].shape[0]
     num_classes = torch.max(dataset.all.graph_labels).item() + 1
     net_params['n_classes'] = num_classes
+    net_params['dropout'] = args.dropout
     model = gnn_model(MODEL_NAME, net_params)
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=params['init_lr'], weight_decay=params['weight_decay'])
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
     print("Target Model:\n{}".format(model))
     client = []
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     acc_record = [0]
     counts = 0
     weight_history = []
-    for epoch in range(params['epochs']):
+    for epoch in range(args.epochs):
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
             # malicious clients start backdoor attack

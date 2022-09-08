@@ -51,7 +51,6 @@ if __name__ == '__main__':
         if net_params['self_loop']:
             print("[!] Adding graph self-loops for GCN/GAT models (central node trick).")
             dataset._add_self_loops()
-    params = config['params']
     net_params['in_dim'] = dataset.all.graph_lists[0].ndata['feat'][0].shape[0]
     num_classes = torch.max(dataset.all.graph_labels).item() + 1
     net_params['n_classes'] = num_classes
@@ -111,7 +110,7 @@ if __name__ == '__main__':
     acc_record = [0]
     counts = 0
     weight_history = []
-    for epoch in range(params['epochs']):
+    for epoch in range(args.epochs):
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
             # inject global trigger into the centrilized attacker - client[0]
