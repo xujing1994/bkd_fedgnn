@@ -56,7 +56,5 @@ All arguments in the parer are able to set default values in the configuration f
 ### Some important arguments
 > Dataset name: `--dataset` (default='NCI1', help='name of dataset')
 > Dataset path: `--datadir` (default=`./Data`, help=`path to save the downloaded dataset`)  
-> Number of clients: `--model_dir` (`./data/model`)  
-> Attack: `--attack_dir` (`./data/attack`)  
-> Defense: `--defense_dir` (`./data/defense`) 
+> Number of clients: `--num_workers` ()  
 
