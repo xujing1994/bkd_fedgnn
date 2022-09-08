@@ -45,8 +45,7 @@ Examples:
 ```
 python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2
 ```
-> Note: The experimental results won't be saved without value for `--filename`
-
+> Note: The experimental results won't be saved without value for `--filename`.
 > Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
 
 ## Detailed Usage
