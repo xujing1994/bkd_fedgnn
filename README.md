@@ -36,12 +36,15 @@ python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_commo
 
 ## Included experiments
 
-| Experiment Name     | Dataset             | Number of Clients (`--num_workers`)  | Number of Malicious Clients (`--num_mali`)|
-|---------------------|:-------------------:|--------------------------------------|-------------------------------------------|
-| Honest Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES`  | `5`  | `2` |
-| Malicious Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES`  | `5`  | `3` |
-| Impact of the Number of Clients | `TRIANGLES`  | `10`, `20`  | `4`(`6`), `8`('12') |
-| Impact of the Percentage of Malicious Clients | `TRIANGLES`  | `100` | `5`, `10`, `15`, `20` |
+| Experiment Name| Dataset| Model |  Number of Clients (`--num_workers`)| Number of Malicious Clients (`--num_mali`)|
+|---------------------|-------------------|-------------|---------|-----------|
+| Honest Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES`  | `GCN`, `GAT`, `GraphSAGE`| `5`  | `2` |
+| Malicious Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `5`  | `3` |
+| Impact of the Number of Clients | `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `10`, `20`  | `4`(`6`), `8`(`12`) |
+| Impact of the Percentage of Malicious Clients | `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `100` | `5`, `10`, `15`, `20` |
+| Defense | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE`| `5` | `2`,`3` |
+
+> Each experiment was repeated 10 times (`--seed`) to get the average result and standard deviation.
 
 ## Detailed Usage
 ### Configuration file
