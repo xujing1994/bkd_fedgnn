@@ -34,6 +34,15 @@ python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_commo
 > Note: The experimental results won't be saved without value for `--filename`.  
 > Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
 
+## Included experiments
+
+| Experiment Name     | Dataset             | Number of Clients (`--num_workers`)  | Number of Malicious Clients (`--num_mali`)|
+|---------------------|:-------------------:|--------------------------------------|-------------------------------------------|
+| Honest Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES`  | `5`  | `2` |
+| Malicious Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES`  | `5`  | `3` |
+| Impact of the Number of Clients | `TRIANGLES`  | `10`, `20`  | `4`(`6`), `8`('12') |
+| Impact of the Percentage of Malicious Clients | `TRIANGLES`  | `100` | `5`, `10`, `15`, `20` |
+
 ## Detailed Usage
 ### Configuration file
 All arguments in the parer are able to set default values in the configuration file in ```./Common/Utils/options.py```
