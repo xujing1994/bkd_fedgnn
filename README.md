@@ -1,7 +1,7 @@
 # More is Better (Mostly): On the Backdoor Attacks in Federated Graph Neural Networks
 
 ## Installation
-Install PyTorch following the instuctions on the [PyTorch](https://pytorch.org/). The code has been tested over PyTorch 1.9.0+cpu and 1.9.0+cu111 versions.
+Install PyTorch following the instuctions on the [PyTorch](https://pytorch.org/). The code has been tested over `PyTorch 1.9.0+cpu` and `1.9.0+cu111` versions.
 
 Then install the other dependencies.
 ```
