@@ -5,7 +5,7 @@ from torch import device
 import json
 import os
 from Common.Utils.options import args_parser
-from Common.Utils.gnn_util import transform_dataset, inject_global_trigger_test, save_object, split_dataset
+from Common.Utils.gnn_util import split_dataset
 import time
 from Common.Utils.evaluate import gnn_evaluate_accuracy_v2
 import numpy as np 
@@ -36,6 +36,7 @@ class DotDict(dict):
 if __name__ == '__main__':
     time_1 = time.time()
     args = args_parser()
+    torch.manual_seed(args.seed)
     with open(args.config) as f:
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

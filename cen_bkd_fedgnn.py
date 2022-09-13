@@ -39,6 +39,7 @@ class DotDict(dict):
 
 if __name__ == '__main__':
     args = args_parser()
+    torch.manual_seed(args.seed)
     with open(args.config) as f:
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')

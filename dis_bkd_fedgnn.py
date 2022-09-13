@@ -37,8 +37,8 @@ class DotDict(dict):
 
 
 if __name__ == '__main__':
-    time_1 = time.time()
     args = args_parser()
+    torch.manual_seed(args.seed)
     with open(args.config) as f:
         config = json.load(f)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -110,8 +110,6 @@ if __name__ == '__main__':
         test_global_trigger_load = DataLoader(test_global_trigger, batch_size=args.batch_size, shuffle=True,
                                 drop_last=drop_last,
                                 collate_fn=dataset.collate)
-        time_2 = time.time()
-        print("saveing triggers using time: %.3f"%(time_2-time_1))
     acc_record = [0]
     counts = 0
     weight_history = []

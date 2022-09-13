@@ -7,7 +7,6 @@ import csv
 import dgl
 from dgl.data import LegacyTUDataset
 import random
-random.seed(42)
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import csv
 
@@ -150,7 +149,6 @@ class TUsDataset(torch.utils.data.Dataset):
         t0 = time.time()
         self.name = args.dataset
         raw_dir = "{}/raw_data/".format(args.datadir)
-        #dataset = TUDataset(self.name, hidden_size=1)
         dataset = LegacyTUDataset(self.name, hidden_size=1, raw_dir=raw_dir) # dgl 4.0
 
         # frankenstein has labels 0 and 2; so correcting them as 0 and 1
@@ -191,7 +189,6 @@ class TUsDataset(torch.utils.data.Dataset):
         labels = [data[1] for data in dataset]
 
         for graph in graphs:
-            #graph.ndata['feat'] = torch.FloatTensor(graph.ndata['feat'])
             graph.ndata['feat'] = graph.ndata['feat'].float() # dgl 4.0
             # adding edge features for Residual Gated ConvNet, if not there
             if 'feat' not in graph.edata.keys():
@@ -207,13 +204,6 @@ class TUsDataset(torch.utils.data.Dataset):
         graphs, labels = map(list, zip(*samples))
         a = np.array(labels, dtype=np.float16)
         labels = torch.from_numpy(a)
-        #labels = torch.tensor(np.array(labels))
-        #tab_sizes_n = [ graphs[i].number_of_nodes() for i in range(len(graphs))]
-        #tab_snorm_n = [ torch.FloatTensor(size,1).fill_(1./float(size)) for size in tab_sizes_n ]
-        #snorm_n = torch.cat(tab_snorm_n).sqrt()  
-        #tab_sizes_e = [ graphs[i].number_of_edges() for i in range(len(graphs))]
-        #tab_snorm_e = [ torch.FloatTensor(size,1).fill_(1./float(size)) for size in tab_sizes_e ]
-        #snorm_e = torch.cat(tab_snorm_e).sqrt()
         batched_graph = dgl.batch(graphs)
         
         return batched_graph, labels
@@ -225,13 +215,6 @@ class TUsDataset(torch.utils.data.Dataset):
         graphs, labels = map(list, zip(*samples))
         a = np.array(labels, dtype=np.float16)
         labels = torch.from_numpy(a)
-        #labels = torch.tensor(np.array(labels))
-        #tab_sizes_n = [ graphs[i].number_of_nodes() for i in range(len(graphs))]
-        #tab_snorm_n = [ torch.FloatTensor(size,1).fill_(1./float(size)) for size in tab_sizes_n ]
-        #snorm_n = tab_snorm_n[0][0].sqrt()  
-        
-        #batched_graph = dgl.batch(graphs)
-    
         g = graphs[0]
         adj = self._sym_normalize_adj(g.adjacency_matrix().to_dense())        
         """
