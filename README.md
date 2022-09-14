@@ -126,7 +126,8 @@ Global model with local trigger 1: 1.000
 | Impact of the Percentage of Malicious Clients | `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `100` | `5`, `10`, `15`, `20` |
 | Defense (`foolsgold` or `flame`) | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE`| `5` | `2`,`3` |
 
-> Each experiment was repeated 10 times (`--seed`) to get the average result and standard deviation.
+> Each experiment was repeated 10 times with a different seed each time
+> (`--seed {1-10}`) to get the average result and standard deviation.
 
 ## Detailed Usage
 There are many arguments that control the operation of our scripts. These
