@@ -34,7 +34,6 @@ class DotDict(dict):
         self.__dict__ = self
 
 if __name__ == '__main__':
-    time_1 = time.time()
     args = args_parser()
     torch.manual_seed(args.seed)
     with open(args.config) as f:
@@ -102,7 +101,6 @@ if __name__ == '__main__':
                 with open(save_path, 'a') as f:
                     f.write('%.3f %.3f %.3f %.3f'%(train_loss, train_acc, test_loss, test_acc))
                     f.write('\n')
-
 
         weights = []
         for i in range(args.num_workers):
