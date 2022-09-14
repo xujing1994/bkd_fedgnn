@@ -13,15 +13,15 @@ The dataset can be specified by setting `--dataset` with dataset name, such as `
 ## Test run
 1. Train a clean Federated GNN model
 ```
-python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 0 --filename ./Results/Clean
+python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 0 --filename ./Results/Clean
 ```
 2. Test distributed backdoor attack in Federated GNNs
 ```
-python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
+python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
 ```
 3. Test centralized backdoor attack in Federated GNNs
 ```
-python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
+python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
 4. Test defense against backdoor attack in Federated GNNs
 
@@ -29,7 +29,7 @@ Here two defenses can be tested against the backdoor attack in Federated GNNs, b
 
 Examples:
 ```
-python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_MUTAG_100k.json --num_workers 5 --num_mali 2
+python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2
 ```
 > Note: The experimental results won't be saved without value for `--filename`.  
 > Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
