@@ -8,12 +8,20 @@ and `cen_bkd_fedgnn.py` trains backdoored federated GNNs under the centralized
 backdoor atttack (CBA) setup.
 
 ## Installation
-Install PyTorch following the instuctions on the [PyTorch](https://pytorch.org/). The code has been tested over `PyTorch 1.9.0+cpu` and `1.9.0+cu111` versions.
+We tested our code with python 3.6.8 and python 3.9.2. So as long as there
+is python >= 3.6 installed everything can be easily tested through a virtual
+environment which can be created and activated in the following way:
+```
+$ python -m venv env
+$ . env/bin/activate
+```
 
-Then install the other dependencies.
+Then install the dependencies based on ```requirements.txt```.
+
 ```
-pip install -r requirements.txt
+$ python -m pip install -r requirements.txt
 ```
+
 ## Dataset
 The dataset can be specified by setting `--dataset` with dataset name, such as ``NCI1``, ``PROTEINS_full``, ``TRIANGLES``. The dataset name can be those on [TUDataset](https://chrsmrrs.github.io/datasets/docs/datasets/).
 
