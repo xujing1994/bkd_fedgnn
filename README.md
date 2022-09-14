@@ -115,24 +115,8 @@ Global model with local trigger 1: 1.000
 > Each experiment was repeated 10 times (`--seed`) to get the average result and standard deviation.
 
 ## Detailed Usage
-### Configuration file
-All arguments in the parer are able to set default values in the configuration file in ```./Common/Utils/options.py```
-
-### Some important arguments
-> `--dataset` (`default='NCI1', help='name of dataset'`)
-> 
-> `--datadir` (`default='./Data', help='path to save the downloaded dataset'`)
-> 
-> `--config` (`default='./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json', help='path of config file which defines the GNN neural network'`)
-> 
-> `--num_workers` (`default=5, help='number of clients in total'`)
-> 
-> `--num_mali` (`default=2, help='number of malicious clients in the backdoor attack'`)
-> 
-> `--filename` (`default='./Results', help='path to save the experimental results'`)
-
-### Script arguments.
-The full script arguments are shown below:
+There are many arguments that control the operation of our scripts. These
+arguments are contained in ```./Common/Utils/options.py``` and shown below:
 
 ```
 
