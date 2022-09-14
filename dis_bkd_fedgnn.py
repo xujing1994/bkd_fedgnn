@@ -157,7 +157,7 @@ if __name__ == '__main__':
         # if there is a defense applied
         if args.defense == 'foolsgold':
             result, weight_history, alpha = foolsgold(args, weight_history, weights)
-            save_path = os.path.join("./Data/alpha/%d/DBA"%(args.seed), MODEL_NAME + '_' + args.dataset + \
+            save_path = os.path.join("./Results/alpha/DBA", str(args.seed), MODEL_NAME + '_' + args.dataset + \
                         '_%d_%d_%.2f_%.2f_%.2f'%(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_alpha.txt')
             path = os.path.split(save_path)[0]
             isExist = os.path.exists(path)
