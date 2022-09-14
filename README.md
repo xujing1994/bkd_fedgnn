@@ -18,15 +18,15 @@ pip install -r requirements.txt
 The dataset can be specified by setting `--dataset` with dataset name, such as ``ENZYMES``, ``DD``, ``COLLAB``, ``MUTAG``. The dataset name can be those on [TUDataset](https://chrsmrrs.github.io/datasets/docs/datasets/).
 
 ## Test run
-1. Train a clean Federated GNN model
+### 1. Train a clean Federated GNN model
 ```
 python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 0 --filename ./Results/Clean
 ```
-2. Test distributed backdoor attack in Federated GNNs
+### 2. Test distributed backdoor attack in Federated GNNs
 ```
 python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
 ```
-3. Test centralized backdoor attack in Federated GNNs
+### 3. Test centralized backdoor attack in Federated GNNs
 ```
 python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
@@ -58,7 +58,7 @@ Global model with global trigger: 1.000
 Global model with local trigger 0: 1.000
 Global model with local trigger 1: 0.736
 ```
-4. Test defense against backdoor attack in Federated GNNs
+### 4. Test defense against backdoor attack in Federated GNNs
 
 Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold` or `flame`.
 These two defenses are implemented following the algorithms in papers: [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866) and [FLAME: Taming Backdoors in Federated Learning](https://www.usenix.org/conference/usenixsecurity22/presentation/nguyen).
