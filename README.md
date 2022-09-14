@@ -30,6 +30,8 @@ The dataset can be specified by setting `--dataset` with dataset name, such as `
 ```
 python clean_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 0 --filename ./Results/Clean
 ```
+> Note: The results will be saved in the folder `./Results/Clean` and among the saved files, the file named `GCN_NCI1_5_0_0.20_0.20_0.80_global_test.txt` contains the test accuracy of the global model, which is used to calculate the clean accuracy drop, as presented in Section 5.3 in the paper.
+
 ### 2. Test distributed backdoor attack in Federated GNNs
 ```
 python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA
@@ -66,6 +68,8 @@ Global model with global trigger: 1.000
 Global model with local trigger 0: 1.000
 Global model with local trigger 1: 0.736
 ```
+> Note: The results of DBA or CBA will be saved in the folder `./Results/DBA` or `./Results/CBA`. The attack results of the global model is saved in the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt`. Specifically, the first column is the attack success rate with the global trigger and the other columns are the attack success rate with local triggers, which are used to draw Figure 3, 4, 5, 7, 11, 12 in the paper.
+
 ### 4. Test defense against backdoor attack in Federated GNNs
 
 Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold` or `flame`.
@@ -73,7 +77,7 @@ These two defenses are implemented following the algorithms in papers: [Mitigati
 
 Examples:
 ```
-python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2
+python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA_foolsgold
 ```
 > Note: For each script of backdoor attack in Federated GNNs with defense, the backdoor attack results with defense will be obtained, as well as the weights on every client in FoolsGold (i.e., alpha) which are reported to explain the ineffectiveness of FoolsGold, as shown in Appendix B in the paper. The output of the script of FoolsGold defense can be seen as follows:
 
@@ -106,9 +110,11 @@ Global model with global trigger: 1.000
 Global model with local trigger 0: 1.000
 Global model with local trigger 1: 1.000
 ```
+> Note: The results of DBA (CBA) with FoolsGold or FLAME defense will be saved in the folder `./Results/{}_{}.format(attack, defense)`, e.g., `./Results/DBA_foolsgold`. Still, the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt` contains the attack results of the global model, which represents the backdoor attack results on defense and is used to draw Figure 9, 10, 13, 14 in the paper.
+
 > Note: The experimental results won't be saved without value for `--filename`.
 > 
-> Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
+> Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of Section 4.1 in the paper.
 
 ## Included experiments
 
