@@ -75,7 +75,7 @@ Global model with local trigger 1: 0.736
 Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold` or `flame`.
 These two defenses are implemented following the algorithms in papers: [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866) and [FLAME: Taming Backdoors in Federated Learning](https://www.usenix.org/conference/usenixsecurity22/presentation/nguyen).
 
-Examples:
+Example:
 ```
 python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/DBA_foolsgold
 ```
