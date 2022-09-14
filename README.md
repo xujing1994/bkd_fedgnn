@@ -30,6 +30,34 @@ python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_gr
 ```
 python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
+> Note: For each script of backdoor attack in Federated GNNs, we can get the train loss, train accuracy, test loss, test accuracy, attack success rate with global trigger, attack success rate with each local trigger for each client, and the test accuracy, attack success rate with global trigger, attack success rate with each local trigger for the global model, for each epoch, as follows.
+```
+epoch: 0
+Client 0, loss 0.6251, train acc 0.628, test loss 0.6968, test acc 0.492
+Client 0 with global trigger: 1.000
+Client 0 with local trigger 0: 1.000
+Client 0 with local trigger 1: 1.000
+Client 1, loss 0.5336, train acc 0.714, test loss 0.6824, test acc 0.562
+Client 1 with global trigger: 1.000
+Client 1 with local trigger 0: 1.000
+Client 1 with local trigger 1: 1.000
+Client 2, loss 0.8846, train acc 0.489, test loss 0.6891, test acc 0.585
+Client 2 with global trigger: 1.000
+Client 2 with local trigger 0: 1.000
+Client 2 with local trigger 1: 0.901
+Client 3, loss 0.6916, train acc 0.543, test loss 0.6999, test acc 0.467
+Client 3 with global trigger: 0.758
+Client 3 with local trigger 0: 0.714
+Client 3 with local trigger 1: 0.033
+Client 4, loss 0.6709, train acc 0.604, test loss 0.7165, test acc 0.467
+Client 4 with global trigger: 0.099
+Client 4 with local trigger 0: 0.110
+Client 4 with local trigger 1: 0.011
+Global Test Acc: 0.579
+Global model with global trigger: 1.000
+Global model with local trigger 0: 1.000
+Global model with local trigger 1: 0.736
+```
 4. Test defense against backdoor attack in Federated GNNs
 
 Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of '--defense' to be 'foolsgold' or 'flame'.
@@ -37,6 +65,37 @@ Here two defenses can be tested against the backdoor attack in Federated GNNs, b
 Examples:
 ```
 python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2
+```
+> Note: For each script of backdoor attack in Federated GNNs with defense, the backdoor attack results with defense will be obtained, as well as the weights on every client in FoolsGold (i.e., alpha) which are reported to explain the ineffectiveness of FoolsGold, as shown in Appendix B in the paper. The output of the script with defense can be seen as follows:
+
+```
+epoch: 0
+Client 0, loss 0.6288, train acc 0.631, test loss 0.6974, test acc 0.492
+Client 0 with global trigger: 1.000
+Client 0 with local trigger 0: 1.000
+Client 0 with local trigger 1: 1.000
+Client 1, loss 0.5270, train acc 0.714, test loss 0.6821, test acc 0.562
+Client 1 with global trigger: 1.000
+Client 1 with local trigger 0: 1.000
+Client 1 with local trigger 1: 1.000
+Client 2, loss 0.9303, train acc 0.489, test loss 0.6883, test acc 0.600
+Client 2 with global trigger: 1.000
+Client 2 with local trigger 0: 1.000
+Client 2 with local trigger 1: 1.000
+Client 3, loss 0.7069, train acc 0.504, test loss 0.6985, test acc 0.467
+Client 3 with global trigger: 0.484
+Client 3 with local trigger 0: 0.516
+Client 3 with local trigger 1: 0.615
+Client 4, loss 0.6686, train acc 0.607, test loss 0.7146, test acc 0.467
+Client 4 with global trigger: 0.022
+Client 4 with local trigger 0: 0.044
+Client 4 with local trigger 1: 0.011
+alpha:
+[1.         1.         1.         0.54983845 0.54983845]
+Global Test Acc: 0.533
+Global model with global trigger: 1.000
+Global model with local trigger 0: 1.000
+Global model with local trigger 1: 1.000
 ```
 > Note: The experimental results won't be saved without value for `--filename`.
 > Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
