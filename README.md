@@ -110,7 +110,7 @@ Global model with global trigger: 1.000
 Global model with local trigger 0: 1.000
 Global model with local trigger 1: 1.000
 ```
-> Note: The results of DBA (CBA) with FoolsGold or FLAME defense will be saved in the folder `./Results/{}_{}.format(attack, defense)`, e.g., `./Results/DBA_foolsgold`. Still, the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt` contains the attack results of the global model, which represents the backdoor attack results on defense and is used to draw Figure 9, 10, 13, 14 in the paper.
+> Note: The results of DBA (CBA) with FoolsGold or FLAME defense will be saved in the folder `./Results/{}_{}.format(attack, defense)`, e.g., `./Results/DBA_foolsgold`. Still, the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt` contains the attack results of the global model, which represents the backdoor attack results on defense and is used to draw Figure 9, 10, 13, 14 in the paper. In addition, for FoolsGold, the value of alpha will be saved in a file `GCN_NCI1_5_2_0.20_0.20_0.80_alpha.txt` in the folder `./Results/alpha/DBA` or `./Results/alpha/CBA`. In this file, each column is the aggregation weight of each client.
 
 > Note: The experimental results won't be saved without value for `--filename`.
 > 
