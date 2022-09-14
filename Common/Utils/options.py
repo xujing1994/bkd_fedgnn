@@ -1,7 +1,7 @@
 import argparse
 
 def args_parser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # federated arguments
     parser.add_argument('--num_workers', type=int, default=10, help="number of clients in total")
     parser.add_argument('--batch_size', type=int, default=128, help="local batch size")
