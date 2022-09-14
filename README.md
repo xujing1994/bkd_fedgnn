@@ -60,13 +60,14 @@ Global model with local trigger 1: 0.736
 ```
 4. Test defense against backdoor attack in Federated GNNs
 
-Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of '--defense' to be 'foolsgold' or 'flame'.
+Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold` or `flame`.
+These two defenses are implemented following the algorithms in papers: [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866) and [FLAME: Taming Backdoors in Federated Learning](https://www.usenix.org/conference/usenixsecurity22/presentation/nguyen).
 
 Examples:
 ```
 python dis_bkd_fedgnn.py --defense foolsgold --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2
 ```
-> Note: For each script of backdoor attack in Federated GNNs with defense, the backdoor attack results with defense will be obtained, as well as the weights on every client in FoolsGold (i.e., alpha) which are reported to explain the ineffectiveness of FoolsGold, as shown in Appendix B in the paper. The output of the script with defense can be seen as follows:
+> Note: For each script of backdoor attack in Federated GNNs with defense, the backdoor attack results with defense will be obtained, as well as the weights on every client in FoolsGold (i.e., alpha) which are reported to explain the ineffectiveness of FoolsGold, as shown in Appendix B in the paper. The output of the script of FoolsGold defense can be seen as follows:
 
 ```
 epoch: 0
@@ -98,6 +99,7 @@ Global model with local trigger 0: 1.000
 Global model with local trigger 1: 1.000
 ```
 > Note: The experimental results won't be saved without value for `--filename`.
+> 
 > Note: In order to make sure trigger pattern in CBA is the union set of local trigger patterns in DBA, DBA should be implemented before the CBA. The reason can be found in the last paragraph of section 4.1 in the paper.
 
 ## Included experiments
@@ -118,10 +120,15 @@ All arguments in the parer are able to set default values in the configuration f
 
 ### Some important arguments
 > `--dataset` (`default='NCI1', help='name of dataset'`)
+> 
 > `--datadir` (`default='./Data', help='path to save the downloaded dataset'`)
+> 
 > `--config` (`default='./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json', help='path of config file which defines the GNN neural network'`)
+> 
 > `--num_workers` (`default=5, help='number of clients in total'`)
+> 
 > `--num_mali` (`default=2, help='number of malicious clients in the backdoor attack'`)
+> 
 > `--filename` (`default='./Results', help='path to save the experimental results'`)
 
 ### Script arguments.
