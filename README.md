@@ -38,7 +38,7 @@ python dis_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_gr
 ```
 ### 3. Test centralized backdoor attack in Federated GNNs
 ```
-python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/config/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
+python cen_bkd_fedgnn.py --dataset NCI1 --config ./GNN_common/configs/TUS/TUs_graph_classification_GCN_NCI1_100k.json --num_workers 5 --num_mali 2 --filename ./Results/CBA
 ```
 > Note: For each script of backdoor attack in Federated GNNs, we can get the train loss, train accuracy, test loss, test accuracy, attack success rate with global trigger, attack success rate with each local trigger for each client, and the test accuracy, attack success rate with global trigger, attack success rate with each local trigger for the global model, for each epoch, as follows:
 ```
