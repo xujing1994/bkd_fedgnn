@@ -105,7 +105,9 @@ if __name__ == '__main__':
         isExist = os.path.exists(path)
         if not isExist:
             os.makedirs(path)
+        # save the global trigger that is then used in the centralized backdoor attack
         save_object(triggers, filename)
+        print('The global trigger is saved successfully!')
         test_global_trigger = inject_global_trigger_test(partition[-1], avg_nodes, args, triggers)
         test_global_trigger_load = DataLoader(test_global_trigger, batch_size=args.batch_size, shuffle=True,
                                 drop_last=drop_last,
