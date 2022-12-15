@@ -56,11 +56,8 @@ if __name__ == '__main__':
     num_classes = torch.max(dataset.all.graph_labels).item() + 1
     net_params['n_classes'] = num_classes
     net_params['dropout'] = args.dropout
-    model = gnn_model(MODEL_NAME, net_params)
-    model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
-    print("Target Model:\n{}".format(model))
+
+    #print("Target Model:\n{}".format(model))
     client = []
     loss_func = nn.CrossEntropyLoss()
     # Load data
@@ -68,6 +65,10 @@ if __name__ == '__main__':
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
     for i in range(args.num_workers):
+        model = gnn_model(MODEL_NAME, net_params)
+        model = model.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
         train_dataset = partition[i]
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
