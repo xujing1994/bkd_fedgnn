@@ -59,9 +59,6 @@ if __name__ == '__main__':
     net_params['dropout'] = args.dropout
 
     model = gnn_model(MODEL_NAME, net_params)
-    model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
 
     #print("Target Model:\n{}".format(model))
     client = []
@@ -71,7 +68,11 @@ if __name__ == '__main__':
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
     for i in range(args.num_workers):
-        model = copy.deepcopy(model)
+        local_model = copy.deepcopy(model)
+        local_model = local_model.to(device)
+        optimizer = torch.optim.Adam(local_model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
+
         train_dataset = partition[i]
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
@@ -84,11 +85,13 @@ if __name__ == '__main__':
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
         
-        client.append(ClearDenseClient(client_id=i, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+        client.append(ClearDenseClient(client_id=i, model=local_model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
     # check model memory address
     for i in range(args.num_workers):
-        add = id(client[i].model)
-        print('model {} address: {}'.format(i, add))
+        add_m = id(client[i].model)
+        add_o = id(client[i].optimizer)
+        print('model {} address: {}'.format(i, add_m))
+        print('optimizer {} address: {}'.format(i, add_o))
     # prepare backdoor local backdoor dataset
     train_loader_list = []
     attack_loader_list = []
