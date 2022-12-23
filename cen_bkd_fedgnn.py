@@ -15,6 +15,7 @@ from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
 from torch.utils.data import DataLoader
 from defense import foolsgold, flame
+import copy
 
 def server_robust_agg(args, grad): ## server aggregation
     grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
@@ -60,7 +61,10 @@ if __name__ == '__main__':
     ## set a global model
     global_model = gnn_model(MODEL_NAME, net_params)
     global_model = global_model.to(device)
-
+    model = gnn_model(MODEL_NAME, net_params)
+    model = model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
     #print("Target Model:\n{}".format(model))
     client = []
     loss_func = nn.CrossEntropyLoss()
@@ -73,11 +77,7 @@ if __name__ == '__main__':
     print("Triggers loaded!")
     args.num_mali = len(global_trigger)
     for i in range(args.num_workers):
-        model = gnn_model(MODEL_NAME, net_params)
-        model = model.to(device)
-
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
+        model = copy.deepcopy(model)
         print("Client %d training data num: %d"%(i, len(partition[i])))
         print("Client %d testing data num: %d"%(i, len(partition[-1])))
         train_loader = DataLoader(partition[i], batch_size=args.batch_size, shuffle=True,
@@ -89,6 +89,10 @@ if __name__ == '__main__':
                                     collate_fn=dataset.collate)
         
         client.append(ClearDenseClient(client_id=i, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+    # check model memory address
+    for i in range(args.num_workers):
+        add = id(client[i].model)
+        print('model {} address: {}'.format(i, add))
     # prepare backdoor training dataset and testing dataset
     train_trigger_graphs, final_idx = inject_global_trigger_train(partition[0], avg_nodes, args, global_trigger)
     test_trigger_graphs = inject_global_trigger_test(partition[-1], avg_nodes, args, global_trigger)

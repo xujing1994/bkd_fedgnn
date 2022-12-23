@@ -7,7 +7,8 @@ import sklearn.metrics.pairwise as smp
 def flame(args, grad_in):
     grad_in = np.array(grad_in).reshape((args.num_workers, -1))
     distance_maxtrix = pairwise_distances(grad_in, metric='cosine')
-    cluster = hdbscan.HDBSCAN(metric='l2', min_cluster_size=3, allow_single_cluster=True)
+    #cluster = hdbscan.HDBSCAN(metric='l2', min_cluster_size=3, allow_single_cluster=True) # error
+    cluster = hdbscan.HDBSCAN(metric='precomputed', min_cluster_size=3, allow_single_cluster=True)
     cluster.fit(distance_maxtrix)
     label = cluster.labels_
     print(label)

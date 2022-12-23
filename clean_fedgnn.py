@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
 from torch.utils.data import DataLoader
+import copy
 
 def server_robust_agg(args, grad): ## server aggregation
     grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
@@ -53,6 +54,11 @@ if __name__ == '__main__':
     num_classes = torch.max(dataset.all.graph_labels).item() + 1
     net_params['n_classes'] = num_classes
     net_params['dropout'] = args.dropout
+
+    model = gnn_model(MODEL_NAME, net_params)
+    model = model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
     #print("Target Model:\n{}".format(model))
     client = []
     loss_func = nn.CrossEntropyLoss()
@@ -61,10 +67,7 @@ if __name__ == '__main__':
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
     for i in range(args.num_workers):
-        model = gnn_model(MODEL_NAME, net_params)
-        model = model.to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
+        model = copy.deepcopy(model)
         train_dataset = partition[i]
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
@@ -78,6 +81,11 @@ if __name__ == '__main__':
                                      collate_fn=dataset.collate)
         
         client.append(ClearDenseClient(client_id=i, model=model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+    
+    # check model memory address
+    for i in range(args.num_workers):
+        add = id(client[i].model)
+        print('model {} address: {}'.format(i, add))
 
     acc_record = [0]
     counts = 0
