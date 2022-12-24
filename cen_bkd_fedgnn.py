@@ -22,12 +22,13 @@ def server_robust_agg(args, grad): ## server aggregation
     return grad_in.tolist()
     
 class ClearDenseClient(WorkerBaseV2):
-    def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args):
+    def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args, scheduler):
         super(ClearDenseClient, self).__init__(model=model, loss_func=loss_func, train_iter=train_iter, attack_iter=attack_iter,
                                                test_iter=test_iter, config=config, optimizer=optimizer, device=device)
         self.client_id = client_id
         self.grad_stub = None
         self.args = args
+        self.scheduler = scheduler
 
     def update(self):
         pass
@@ -89,13 +90,15 @@ if __name__ == '__main__':
                                     drop_last=drop_last,
                                     collate_fn=dataset.collate)
         
-        client.append(ClearDenseClient(client_id=i, model=local_model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+        client.append(ClearDenseClient(client_id=i, model=local_model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args, scheduler=scheduler))
     # check model memory address
     for i in range(args.num_workers):
         add_m = id(client[i].model)
         add_o = id(client[i].optimizer)
+        add_s = id(client[i].scheduler)
         print('model {} address: {}'.format(i, add_m))
         print('optimizer {} address: {}'.format(i, add_o))
+        print('scheduler {} address: {}'.format(i, add_s))
     # prepare backdoor training dataset and testing dataset
     train_trigger_graphs, final_idx = inject_global_trigger_train(partition[0], avg_nodes, args, global_trigger)
     test_trigger_graphs = inject_global_trigger_test(partition[-1], avg_nodes, args, global_trigger)
@@ -129,6 +132,7 @@ if __name__ == '__main__':
         for i in range(args.num_workers):
             att_list = []
             train_loss, train_acc, test_loss, test_acc = client[i].gnn_train_v2()
+            client[i].scheduler.step()
             global_att = gnn_evaluate_accuracy_v2(backdoor_attack_loader, client[i].model)
             print('Client %d, loss %.4f, train acc %.3f, test loss %.4f, test acc %.3f'
                     % (i, train_loss, train_acc, test_loss, test_acc))

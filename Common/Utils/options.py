@@ -9,7 +9,7 @@ def args_parser():
     parser.add_argument('--lr', type=float, default=7e-4, help="learning rate")
     parser.add_argument('--weight_decay', type=float, default=0.0, help="weight decay")
     parser.add_argument('--step_size', type=int, default=100, help="step size")
-    parser.add_argument('--gamma', type=float, default=0.9, help="gamma")
+    parser.add_argument('--gamma', type=float, default=0.7, help="gamma")
     parser.add_argument('--dropout', type=float, default=0.0, help="drop out")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
     parser.add_argument('--defense', type=str, default='None', help='whethere perform a defense, e.g., foolsgold, flame')

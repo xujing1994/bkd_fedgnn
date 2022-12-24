@@ -22,11 +22,12 @@ def server_robust_agg(args, grad): ## server aggregation
     return grad_in.tolist()
     
 class ClearDenseClient(WorkerBaseV2):
-    def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args):
+    def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args, scheduler):
         super(ClearDenseClient, self).__init__(model=model, loss_func=loss_func, train_iter=train_iter, attack_iter=attack_iter, test_iter=test_iter, config=config, optimizer=optimizer, device=device)
         self.client_id = client_id
         self.grad_stub = None
         self.args = args
+        self.schedulre = scheduler
 
     def update(self):
         pass
@@ -85,7 +86,7 @@ if __name__ == '__main__':
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
         
-        client.append(ClearDenseClient(client_id=i, model=local_model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args))
+        client.append(ClearDenseClient(client_id=i, model=local_model, loss_func=loss_func, train_iter=train_loader, attack_iter=attack_loader, test_iter=test_loader, config=config, optimizer=optimizer, device=device, grad_stub=None, args=args, scheduler=scheduler))
     # check model memory address
     for i in range(args.num_workers):
         add_m = id(client[i].model)
@@ -138,6 +139,7 @@ if __name__ == '__main__':
         for i in range(args.num_workers):
             att_list = []
             train_loss, train_acc, test_loss, test_acc = client[i].gnn_train_v2()
+            client[i].scheduler.step()
             global_att = gnn_evaluate_accuracy_v2(test_global_trigger_load, client[i].model)
             print('Client %d, loss %.4f, train acc %.3f, test loss %.4f, test acc %.3f'
                     % (i, train_loss, train_acc, test_loss, test_acc))
