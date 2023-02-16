@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
 from torch.utils.data import DataLoader
-from defense import foolsgold, flame
+from defense import foolsgold
 import copy
 
 def server_robust_agg(args, grad): ## server aggregation
@@ -183,8 +183,6 @@ if __name__ == '__main__':
                     f.write("%.3f" % (alpha[i]))
                     f.write(' ')
                 f.write("\n") 
-        elif args.defense == 'flame':
-            result = flame(args, weights)
         else:
             result = server_robust_agg(args, weights)
 

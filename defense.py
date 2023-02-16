@@ -4,26 +4,6 @@ import numpy as np
 from scipy.special import logit
 import sklearn.metrics.pairwise as smp
 
-def flame(args, grad_in):
-    grad_in = np.array(grad_in).reshape((args.num_workers, -1))
-    distance_maxtrix = pairwise_distances(grad_in, metric='cosine')
-    #cluster = hdbscan.HDBSCAN(metric='l2', min_cluster_size=3, allow_single_cluster=True) # error
-    cluster = hdbscan.HDBSCAN(metric='precomputed', min_cluster_size=3, allow_single_cluster=True)
-    cluster.fit(distance_maxtrix)
-    label = cluster.labels_
-    print(label)
-    if (label == -1).all():
-        bengin_id = np.arange(args.num_workers).tolist()
-    else:
-        label_class, label_count = np.unique(label, return_counts=True)
-        if -1 in label_class:
-            label_class, label_count = label_class[1:], label_count[1:]
-        majority = label_class[np.argmax(label_count)]
-        bengin_id = np.where(label == majority)[0].tolist()
-        print(bengin_id)
-    grad = (grad_in[bengin_id].sum(axis=0)) / len(bengin_id)
-    return grad.tolist()
-
 def fedavg(args, grad_in):
     grad = np.array(grad_in).reshape((args.num_workers, -1)).mean(axis=0)
     return grad.tolist()
