@@ -72,8 +72,8 @@ Global model with local trigger 1: 0.736
 
 ### 4. Test defense against backdoor attack in Federated GNNs
 
-Here two defenses can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold` or `flame`.
-These two defenses are implemented following the algorithms in papers: [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866) and [FLAME: Taming Backdoors in Federated Learning](https://www.usenix.org/conference/usenixsecurity22/presentation/nguyen).
+Here one defense can be tested against the backdoor attack in Federated GNNs, by setting value of `--defense` to be `foolsgold`.
+This defense is implemented following the algorithms in the paper: [Mitigating Sybils in Federated Learning Poisoning](https://arxiv.org/abs/1808.04866).
 
 Example:
 ```
@@ -110,7 +110,7 @@ Global model with global trigger: 1.000
 Global model with local trigger 0: 1.000
 Global model with local trigger 1: 1.000
 ```
-> Note: The results of DBA (CBA) with FoolsGold or FLAME defense will be saved in the folder `./Results/{}_{}.format(attack, defense)`, e.g., `./Results/DBA_foolsgold`. Still, the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt` contains the attack results of the global model, which represents the backdoor attack results on defense and is used to draw Figure 9, 10, 13, 14 in the paper. In addition, for FoolsGold, the value of alpha will be saved in a file `GCN_NCI1_5_2_0.20_0.20_0.80_alpha.txt` in the folder `./Results/alpha/DBA` or `./Results/alpha/CBA`. In this file, each column is the aggregation weight of each client.
+> Note: The results of DBA (CBA) with FoolsGold defense will be saved in the folder `./Results/{}_{}.format(attack, defense)`, e.g., `./Results/DBA_foolsgold`. Still, the file named `GCN_NCI1_5_2_0.20_0.20_0.80_global_attack.txt` contains the attack results of the global model, which represents the backdoor attack results on defense and is used to draw Figure 9, 10, 13, 14 in the paper. In addition, for FoolsGold, the value of alpha will be saved in a file `GCN_NCI1_5_2_0.20_0.20_0.80_alpha.txt` in the folder `./Results/alpha/DBA` or `./Results/alpha/CBA`. In this file, each column is the aggregation weight of each client.
 
 > Note: The experimental results won't be saved without value for `--filename`.
 > 
@@ -124,7 +124,7 @@ Global model with local trigger 1: 1.000
 | Malicious Majority Attack Scenario | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `5`  | `3` |
 | Impact of the Number of Clients | `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `10`, `20`  | `4`(`6`), `8`(`12`) |
 | Impact of the Percentage of Malicious Clients | `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE` | `100` | `5`, `10`, `15`, `20` |
-| Defense (`foolsgold` or `flame`) | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE`| `5` | `2`,`3` |
+| Defense (`foolsgold`) | `NCI1`, `PROTEINS_full`, `TRIANGLES` |`GCN`, `GAT`, `GraphSAGE`| `5` | `2`,`3` |
 
 > Each experiment was repeated 10 times with a different seed each time
 > (`--seed {1-10}`) to get the average result and standard deviation.
@@ -162,7 +162,7 @@ optional arguments:
   --gamma GAMMA         gamma (default: 0.9)
   --dropout DROPOUT     drop out (default: 0.0)
   --momentum MOMENTUM   SGD momentum (default: 0.9)
-  --defense DEFENSE     whethere perform a defense, e.g., foolsgold, flame
+  --defense DEFENSE     whethere perform a defense, e.g., foolsgold
                         (default: None)
   --dataset DATASET     name of dataset (default: NCI1)
   --datadir DATADIR     path to save the dataset (default: ./Data)
