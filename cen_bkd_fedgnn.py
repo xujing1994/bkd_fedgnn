@@ -128,7 +128,6 @@ if __name__ == '__main__':
             client[0].train_iter = backdoor_train_loader
             client[0].attack_iter = backdoor_attack_loader
         train_l_sum, train_acc_sum, n, batch_count, start = 0.0, 0.0, 0, 0, time.time()
-        weights = []
         for i in range(args.num_workers):
             att_list = []
             train_loss, train_acc, test_loss, test_acc = client[i].gnn_train_v2()
@@ -141,7 +140,6 @@ if __name__ == '__main__':
                 tmp_acc = gnn_evaluate_accuracy_v2(test_local_trigger_load[j], client[i].model)
                 print('Client %d with local trigger %d: %.3f'%(i, j, tmp_acc))
                 att_list.append(tmp_acc)
-            weights.append(client[i].get_weights())
             
             if not args.filename == "":
                 save_path = os.path.join(args.filename, str(args.seed), config['model'] + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
@@ -156,6 +154,10 @@ if __name__ == '__main__':
                         f.write('%.3f'%att_list[i])
                         f.write(' ')
                     f.write('\n')
+        weights = []
+        for i in range(args.num_workers):
+            weights.append(client[i].get_weights())
+            weight_history.append(client[i].get_weights())
         # Aggregation in the server to get the global model
         if args.defense == 'foolsgold':
             result, weight_history, alpha = foolsgold(args, weight_history, weights)
