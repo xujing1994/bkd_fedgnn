@@ -7,6 +7,7 @@ from torch._C import device
 import torch.nn.functional as F
 from GNN_common.train.metrics import accuracy_TU as accuracy
 import os
+import ipdb
 logger = logging.getLogger('client.workerbase')
 
 '''
@@ -30,10 +31,15 @@ class WorkerBaseV2(metaclass=ABCMeta):
         self._level_length = None
         self._weights_len = 0
         self._weights = None
+        self._weights_list = None
 
     def get_weights(self):
         """ getting weights """
         return self._weights
+    
+    def get_weights_list(self):
+        """ getting weights as list """
+        return self._weights_list
 
     def set_weights(self, weights):
         """ setting weights """
@@ -41,16 +47,7 @@ class WorkerBaseV2(metaclass=ABCMeta):
 
     def upgrade(self):
         """ Use the processed weights to update the model """
-
-        idx = 0
-        for param in self.model.parameters():
-
-            tmp = self._weights[self._level_length[idx]:self._level_length[idx + 1]]
-            weights_re = torch.tensor(tmp, device=self.device)
-            weights_re = weights_re.view(param.data.size())
-
-            param.data = weights_re
-            idx += 1
+        self.model.load_state_dict(self._weights)
 
     @abstractmethod
     def update(self):
@@ -79,14 +76,14 @@ class WorkerBaseV2(metaclass=ABCMeta):
             n += batch_labels.size(0)
             batch_count += 1
 
-        self._weights = []
+        self._weights_list = []
         self._level_length = [0]
         
         for param in self.model.parameters():
             self._level_length.append(param.data.numel() + self._level_length[-1])
-            self._weights += param.data.view(-1).cpu().numpy().tolist()
+            self._weights_list += param.data.view(-1).cpu().numpy().tolist()
 
-        self._weights_len = len(self._weights)
+        self._weights = self.model.state_dict()
 
         # print train acc of each client
         if self.attack_iter is not None:

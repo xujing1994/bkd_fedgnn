@@ -15,10 +15,14 @@ from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # impor
 from torch.utils.data import DataLoader
 import copy
 
-def server_robust_agg(args, grad): ## server aggregation
-    grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
-    return grad_in.tolist()
-    
+def server_robust_agg(w):
+    w_avg = copy.deepcopy(w[0])
+    for key in w_avg.keys():
+        for i in range(1, len(w)):
+            w_avg[key] += w[i][key]
+        w_avg[key] = torch.div(w_avg[key], len(w))
+    return w_avg
+
 class ClearDenseClient(WorkerBaseV2):
     def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args, scheduler):
         super(ClearDenseClient, self).__init__(model=model, loss_func=loss_func, train_iter=train_iter, attack_iter=attack_iter, test_iter=test_iter, config=config, optimizer=optimizer, device=device)
@@ -56,8 +60,8 @@ if __name__ == '__main__':
     net_params['n_classes'] = num_classes
     net_params['dropout'] = args.dropout
 
-    model = gnn_model(MODEL_NAME, net_params)
-    model = model.to(device)
+    global_model = gnn_model(MODEL_NAME, net_params)
+    global_model = global_model.to(device)
     #print("Target Model:\n{}".format(model))
     client = []
     loss_func = nn.CrossEntropyLoss()
@@ -66,7 +70,7 @@ if __name__ == '__main__':
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
     for i in range(args.num_workers):
-        local_model = copy.deepcopy(model)
+        local_model = copy.deepcopy(global_model)
         local_model = local_model.to(device)
         optimizer = torch.optim.Adam(local_model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
@@ -78,7 +82,7 @@ if __name__ == '__main__':
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
         attack_loader = None
-        test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=True,
+        test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False,
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
         
@@ -119,14 +123,16 @@ if __name__ == '__main__':
         for i in range(args.num_workers):
             weights.append(client[i].get_weights())
         # Aggregation in the server to get the global model
-        result = server_robust_agg(args, weights)
+        result = server_robust_agg(weights)
 
         for i in range(args.num_workers):
             client[i].set_weights(weights=result)
             client[i].upgrade()
+        # update global model's weights
+        global_model.load_state_dict(result)
 
         # evaluate the global model: test_acc
-        test_acc = gnn_evaluate_accuracy_v2(client[0].test_iter, client[0].model)
+        test_acc = gnn_evaluate_accuracy_v2(client[0].test_iter, global_model)
         print('Global Test Acc: %.3f'%test_acc)
         if not args.filename == "":
             save_path = os.path.join(args.filename, str(args.seed), MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
