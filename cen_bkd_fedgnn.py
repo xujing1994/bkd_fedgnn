@@ -17,9 +17,13 @@ from torch.utils.data import DataLoader
 from defense import foolsgold
 import copy
 
-def server_robust_agg(args, grad): ## server aggregation
-    grad_in = np.array(grad).reshape((args.num_workers, -1)).mean(axis=0)
-    return grad_in.tolist()
+def server_robust_agg(w):
+    w_avg = copy.deepcopy(w[0])
+    for key in w_avg.keys():
+        for i in range(1, len(w)):
+            w_avg[key] += w[i][key]
+        w_avg[key] = torch.div(w_avg[key], len(w))
+    return w_avg
     
 class ClearDenseClient(WorkerBaseV2):
     def __init__(self, client_id, model, loss_func, train_iter, attack_iter, test_iter, config, optimizer, device, grad_stub, args, scheduler):
@@ -62,7 +66,6 @@ if __name__ == '__main__':
     ## set a global model
     global_model = gnn_model(MODEL_NAME, net_params)
     global_model = global_model.to(device)
-    model = gnn_model(MODEL_NAME, net_params)
     #print("Target Model:\n{}".format(model))
     client = []
     loss_func = nn.CrossEntropyLoss()
@@ -75,7 +78,7 @@ if __name__ == '__main__':
     print("Triggers loaded!")
     args.num_mali = len(global_trigger)
     for i in range(args.num_workers):
-        local_model = copy.deepcopy(model)
+        local_model = copy.deepcopy(global_model)
         local_model = local_model.to(device)
         optimizer = torch.optim.Adam(local_model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=args.step_size, gamma=args.gamma)
@@ -157,10 +160,10 @@ if __name__ == '__main__':
         weights = []
         for i in range(args.num_workers):
             weights.append(client[i].get_weights())
-            weight_history.append(client[i].get_weights())
+            weight_history.append(client[i].get_weights_list())
         # Aggregation in the server to get the global model
         if args.defense == 'foolsgold':
-            result, weight_history, alpha = foolsgold(args, weight_history, weights)
+            result, weight_history, alpha = foolsgold(args, weight_history, weights, global_model, client[0])
             save_path = os.path.join("./Results/alpha/DBA", str(args.seed), MODEL_NAME + '_' + args.dataset + \
                         '_%d_%d_%.2f_%.2f_%.2f'%(args.num_workers, args.num_mali, args.frac_of_avg, args.poisoning_intensity, args.density) + '_alpha.txt')
             path = os.path.split(save_path)[0]
@@ -173,14 +176,16 @@ if __name__ == '__main__':
                     f.write(' ')
                 f.write("\n")
         else:
-            result = server_robust_agg(args, weights)
+            result = server_robust_agg(weights)
 
         for i in range(args.num_workers):
             client[i].set_weights(weights=result)
             client[i].upgrade()
+        # update global model's weights
+        global_model.load_state_dict(result)
         
         # evaluate the global model: test_acc
-        test_acc = gnn_evaluate_accuracy_v2(client[0].test_iter, client[0].model)
+        test_acc = gnn_evaluate_accuracy_v2(client[0].test_iter, global_model)
         print("Global Test acc: %.3f"%test_acc)
         if not args.filename == "":
             save_path = os.path.join(args.filename, str(args.seed), MODEL_NAME + '_' + args.dataset + '_%d_%d_%.2f_%.2f_%.2f'\
@@ -195,10 +200,10 @@ if __name__ == '__main__':
                 f.write("\n")
         if epoch >= args.epoch_backdoor:
             local_att_acc = []
-            global_att_acc = gnn_evaluate_accuracy_v2(backdoor_attack_loader, client[0].model)
+            global_att_acc = gnn_evaluate_accuracy_v2(backdoor_attack_loader, global_model)
             print('Global model with global trigger: %.3f'%global_att_acc)
             for i in range(len(global_trigger)):
-                tmp_acc = gnn_evaluate_accuracy_v2(test_local_trigger_load[i], client[0].model)
+                tmp_acc = gnn_evaluate_accuracy_v2(test_local_trigger_load[i], global_model)
                 print('Global model with local trigger %d: %.3f'%(i, tmp_acc))
                 local_att_acc.append(tmp_acc)
             if not args.filename == "":

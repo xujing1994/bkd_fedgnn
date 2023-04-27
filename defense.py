@@ -3,14 +3,17 @@ from sklearn.metrics.pairwise import pairwise_distances
 import numpy as np
 from scipy.special import logit
 import sklearn.metrics.pairwise as smp
+import ipdb
+import torch
+import copy
+from scipy.special import softmax
 
 def fedavg(args, grad_in):
     grad = np.array(grad_in).reshape((args.num_workers, -1)).mean(axis=0)
     return grad.tolist()
 
-def foolsgold(args, grad_history, grad_in):
+def foolsgold(args, grad_history, grad_in, global_model, client):
     epsilon = 1e-5
-    grad_in = np.array(grad_in).reshape((args.num_workers, -1))
     grad_history = np.array(grad_history)
     if grad_history.shape[0] != args.num_workers:
         grad_history = grad_history[:args.num_workers,:] + grad_history[args.num_workers:,:]
@@ -35,5 +38,19 @@ def foolsgold(args, grad_history, grad_in):
     alpha[(alpha < 0)] = 0
     print("alpha:")
     print(alpha)
-    grad = np.average(grad_in, weights=alpha, axis=0)
-    return grad.tolist(), grad_history.tolist(), alpha
+
+    # softmax alpha to make it summing up to 1
+    alpha = softmax(alpha)
+    update_weights = copy.deepcopy(grad_in[0])
+    for key in grad_in[0].keys():
+        update_weights[key] = update_weights[key] * alpha[0]
+        for i in range(1, len(grad_in)):
+            update_weights[key] += grad_in[i][key] * alpha[i]
+        update_weights[key] = torch.div(update_weights[key], len(grad_in))
+    
+    ipdb.set_trace
+    is_nan = torch.stack([torch.isnan(p).any() for p in global_model.parameters()]).any()
+    if is_nan.item():
+        print('The model has nan values')
+        ipdb.set_trace()
+    return update_weights, grad_history.tolist(), alpha
