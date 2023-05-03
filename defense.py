@@ -7,6 +7,7 @@ import ipdb
 import torch
 import copy
 from scipy.special import softmax
+from torch.nn.utils import vector_to_parameters, parameters_to_vector
 
 def fedavg(args, grad_in):
     grad = np.array(grad_in).reshape((args.num_workers, -1)).mean(axis=0)
@@ -54,3 +55,45 @@ def foolsgold(args, grad_history, grad_in, global_model, client):
         print('The model has nan values')
         ipdb.set_trace()
     return update_weights, grad_history.tolist(), alpha
+
+
+class Robust_Learning_Rate():
+    def __init__(self, agent_data_sizes, n_params, args):
+        self.agent_data_sizes = agent_data_sizes
+        self.args = args
+        self.n_params = n_params
+
+    def aggregate_updates(self, global_model, agent_updates_dict):
+        # adjust LR if robust LR is selected
+        lr_vector = torch.Tensor([self.args.server_lr]*self.n_params).to(self.args.device)
+        if self.args.robustLR_threshold > 0:
+            lr_vector = self.compute_robustLR(agent_updates_dict)
+        
+        print(lr_vector)
+        aggregated_updates = 0
+        aggregated_updates = self.agg_comed(agent_updates_dict)      
+                
+        cur_global_params = parameters_to_vector(global_model.parameters())
+        new_global_params =  (cur_global_params + lr_vector*aggregated_updates).float() 
+        vector_to_parameters(new_global_params, global_model.parameters())
+        updated_weights = global_model.state_dict()
+        return updated_weights
+
+    def compute_robustLR(self, agent_updates_dict):
+        agent_updates_sign = [torch.sign(update) for update in agent_updates_dict.values()]  
+        sm_of_signs = torch.abs(sum(agent_updates_sign))
+        
+        sm_of_signs[sm_of_signs < self.args.robustLR_threshold] = -self.args.server_lr
+        sm_of_signs[sm_of_signs >= self.args.robustLR_threshold] = self.args.server_lr                                            
+        return sm_of_signs.to(self.args.device)
+    
+    def agg_avg(self, agent_updates_dict):
+        sm_updates = 0
+        for _id, update in agent_updates_dict.items():
+            sm_updates += update
+        return sm_updates / len(agent_updates_dict.keys())
+    
+    def agg_comed(self, agent_updates_dict):
+        agent_updates_col_vector = [update.view(-1, 1) for update in agent_updates_dict.values()]
+        concat_col_vectors = torch.cat(agent_updates_col_vector, dim=1)
+        return torch.median(concat_col_vectors, dim=1).values

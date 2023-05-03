@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from GNN_common.train.metrics import accuracy_TU as accuracy
 import os
 import ipdb
+from torch.nn.utils import vector_to_parameters, parameters_to_vector
 logger = logging.getLogger('client.workerbase')
 
 '''
@@ -32,6 +33,7 @@ class WorkerBaseV2(metaclass=ABCMeta):
         self._weights_len = 0
         self._weights = None
         self._weights_list = None
+        self._update = None
 
     def get_weights(self):
         """ getting weights """
@@ -45,6 +47,9 @@ class WorkerBaseV2(metaclass=ABCMeta):
         """ setting weights """
         self._weights = weights
 
+    def get_update(self):
+        return self._update
+
     def upgrade(self):
         """ Use the processed weights to update the model """
         self.model.load_state_dict(self._weights)
@@ -57,6 +62,7 @@ class WorkerBaseV2(metaclass=ABCMeta):
 
     def gnn_train_v2(self): # This function is for local train one epoch using local dataset on client
         """ General local training methods """
+        initial_model_params = parameters_to_vector(self.model.parameters()).detach()
         self.model.train()
         self.acc_record = [0]
         train_l_sum, train_acc_sum, n, batch_count, start = 0.0, 0.0, 0, 0, time.time()
@@ -90,6 +96,8 @@ class WorkerBaseV2(metaclass=ABCMeta):
             test_acc, test_l,  att_acc = self.gnn_evaluate()
         else:
             test_acc, test_l = self.gnn_evaluate()
+        with torch.no_grad():
+            self._update = parameters_to_vector(self.model.parameters()).double() - initial_model_params
         return train_l_sum / batch_count, train_acc_sum / n, test_l, test_acc
 
     def gnn_evaluate(self):

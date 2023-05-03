@@ -14,8 +14,10 @@ import torch.nn.functional as F
 from GNN_common.data.TUs import TUsDataset
 from GNN_common.nets.TUs_graph_classification.load_net import gnn_model  # import GNNs
 from torch.utils.data import DataLoader
-from defense import foolsgold
+from defense import foolsgold, Robust_Learning_Rate
 import copy
+from torch.nn.utils import vector_to_parameters, parameters_to_vector
+
 
 def server_robust_agg(w):
     w_avg = copy.deepcopy(w[0])
@@ -64,6 +66,7 @@ if __name__ == '__main__':
     net_params['dropout'] = args.dropout
 
     global_model = gnn_model(MODEL_NAME, net_params)
+    global_model = global_model.to(device)
 
     #print("Target Model:\n{}".format(model))
     client = []
@@ -72,6 +75,7 @@ if __name__ == '__main__':
     partition, avg_nodes = split_dataset(args, dataset)
     drop_last = True if MODEL_NAME == 'DiffPool' else False
     triggers = []
+    agent_data_sizes = {}
     for i in range(args.num_workers):
         local_model = copy.deepcopy(global_model)
         local_model = local_model.to(device)
@@ -82,6 +86,7 @@ if __name__ == '__main__':
         test_dataset = partition[-1]
         print("Client %d training data num: %d"%(i, len(train_dataset)))
         print("Client %d testing data num: %d"%(i, len(test_dataset)))
+        agent_data_sizes[i] = len(train_dataset)
         train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True,
                                      drop_last=drop_last,
                                      collate_fn=dataset.collate)
@@ -132,6 +137,7 @@ if __name__ == '__main__':
     counts = 0
     weight_history = []
     for epoch in range(args.epochs):
+        agent_updates_dict = {}
         print('epoch:',epoch)
         if epoch >= args.epoch_backdoor:
             # malicious clients start backdoor attack
@@ -143,6 +149,8 @@ if __name__ == '__main__':
         for i in range(args.num_workers):
             att_list = []
             train_loss, train_acc, test_loss, test_acc = client[i].gnn_train_v2()
+            update = client[i].get_update()
+            agent_updates_dict[i] = update
             # client[i].scheduler.step()
             global_att = gnn_evaluate_accuracy_v2(test_global_trigger_load, client[i].model)
             print('Client %d, loss %.4f, train acc %.3f, test loss %.4f, test acc %.3f'
@@ -187,6 +195,11 @@ if __name__ == '__main__':
                     f.write("%.3f" % (alpha[i]))
                     f.write(' ')
                 f.write("\n") 
+        elif args.defense == 'rlr':
+            n_params = len(parameters_to_vector(global_model.parameters()))
+            aggregator = Robust_Learning_Rate(agent_data_sizes, n_params, args)
+            result = aggregator.aggregate_updates(global_model, agent_updates_dict)
+            # result = global_model.state_dict()
         else:
             result = server_robust_agg(weights)
 

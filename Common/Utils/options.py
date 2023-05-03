@@ -1,4 +1,5 @@
 import argparse
+import torch
 
 def args_parser():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -12,7 +13,6 @@ def args_parser():
     parser.add_argument('--gamma', type=float, default=0.7, help="gamma")
     parser.add_argument('--dropout', type=float, default=0.0, help="drop out")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
-    parser.add_argument('--defense', type=str, default='None', help='whethere perform a defense, e.g., foolsgold, flame')
 
     # argument for backdoor attack in GNN model
     parser.add_argument('--dataset', type=str, default="NCI1", help='name of dataset')
@@ -26,6 +26,12 @@ def args_parser():
     parser.add_argument('--filename', type = str, default = "", help='path of output file(save results)')
     parser.add_argument('--epoch_backdoor', type=int, default=0, help='from which epoch the malicious clients start backdoor attack')
     parser.add_argument('--seed', type=int, default=0, help='0-9')
-
+    parser.add_argument('--defense', type=str, default='None', help='whethere perform a defense, e.g., foolsgold')
+    parser.add_argument('--robustLR_threshold', type=int, default=0, 
+                        help="break ties when votes sum to 0")
+    parser.add_argument('--server_lr', type=float, default=1,
+                        help='servers learning rate for signSGD')
+    parser.add_argument('--device',  default=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"), 
+                        help="To use cuda, set to a specific GPU ID.")
     args = parser.parse_args()
     return args
